@@ -39,6 +39,12 @@ const router = createRouter({
       name: 'admin-dashboard',
       component: () => import('../views/AdminDashboardView.vue'),
     },
+    // 新增：志愿活动页面
+    {
+      path: '/volunteer-activities',
+      name: 'volunteer-activities',
+      component: () => import('../views/VolunteerActivities.vue'),
+    },
   ],
 })
 

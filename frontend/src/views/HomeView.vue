@@ -7,6 +7,7 @@
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
+        <router-link to="/volunteer-activities" class="nav-link">志愿服务</router-link>   <!-- 新增 -->
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
           <router-link to="/register" class="nav-link btn-register">注册</router-link>
@@ -40,7 +41,7 @@
             <h3>动物领养</h3>
             <p>为流浪动物寻找温暖的家，让爱不再流浪</p>
           </div>
-          <div class="feature-card">
+          <div class="feature-card" @click="$router.push('/volunteer-activities')">
             <div class="feature-icon">❤️</div>
             <h3>志愿服务</h3>
             <p>加入志愿者团队，用行动守护小生命</p>

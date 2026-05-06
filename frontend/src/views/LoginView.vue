@@ -2,15 +2,32 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <div class="logo-icon">🐾</div>
-        <h2>欢迎回来</h2>
-        <p class="subtitle">登录您的账户继续</p>
+        <div class="logo-icon">{{ isAdminMode ? '👑' : '🐾' }}</div>
+        <h2>{{ isAdminMode ? '管理员登录' : '欢迎回来' }}</h2>
+        <p class="subtitle">{{ isAdminMode ? '请使用管理员账号登录' : '登录您的账户继续' }}</p>
       </div>
+
+      <!-- 模式切换 -->
+      <div class="mode-toggle">
+        <button
+          :class="['mode-btn', { active: !isAdminMode }]"
+          @click="isAdminMode = false"
+        >
+          用户登录
+        </button>
+        <button
+          :class="['mode-btn', { active: isAdminMode }]"
+          @click="isAdminMode = true"
+        >
+          管理员登录
+        </button>
+      </div>
+
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
           <label for="username">
             <span class="label-icon">👤</span>
-            用户名
+            {{ isAdminMode ? '管理员用户名' : '用户名' }}
           </label>
           <input
             type="text"
@@ -36,13 +53,13 @@
           />
         </div>
         <button type="submit" class="btn-login">
-          <span>立即登录</span>
+          <span>{{ isAdminMode ? '管理员登录' : '立即登录' }}</span>
           <span class="btn-arrow">→</span>
         </button>
-        <div class="divider">
+        <div class="divider" v-if="!isAdminMode">
           <span>或</span>
         </div>
-        <div class="links">
+        <div class="links" v-if="!isAdminMode">
           <router-link to="/register" class="link-primary">
             <span>还没有账号？</span>
             <strong>立即注册</strong>
@@ -76,19 +93,27 @@ export default {
         username: '',
         password: ''
       },
-      errorMessage: ''
+      errorMessage: '',
+      isAdminMode: false
     }
   },
   methods: {
     async handleLogin() {
       try {
         this.errorMessage = ''
-        const response = await userApi.login(this.loginForm)
-
-        localStorage.setItem('currentUser', JSON.stringify(response.data.user))
-
-        alert('登录成功！')
-        this.$router.push('/')
+        let response
+        if (this.isAdminMode) {
+          response = await userApi.verifyAdmin(this.loginForm)
+          localStorage.setItem('currentUser', JSON.stringify(response.data.user))
+          localStorage.setItem('isAdmin', 'true')
+          alert('管理员登录成功！')
+          this.$router.push('/admin/dashboard')
+        } else {
+          response = await userApi.login(this.loginForm)
+          localStorage.setItem('currentUser', JSON.stringify(response.data.user))
+          alert('登录成功！')
+          this.$router.push('/')
+        }
       } catch (error) {
         if (error.response && error.response.data && error.response.data.message) {
           this.errorMessage = error.response.data.message
@@ -188,7 +213,7 @@ export default {
 
 .login-header {
   text-align: center;
-  margin-bottom: 35px;
+  margin-bottom: 25px;
 }
 
 .logo-icon {
@@ -221,6 +246,35 @@ export default {
   color: #666;
   font-size: 16px;
   margin: 0;
+}
+
+/* 模式切换开关 */
+.mode-toggle {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: #f0f0f0;
+  padding: 5px;
+  border-radius: 40px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  color: #666;
+}
+
+.mode-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .login-form {
@@ -409,25 +463,20 @@ label {
   .login-box {
     padding: 40px 30px;
   }
-
   .login-header h2 {
     font-size: 28px;
   }
-
   .logo-icon {
     font-size: 50px;
   }
-
   .circle-1 {
     width: 200px;
     height: 200px;
   }
-
   .circle-2 {
     width: 150px;
     height: 150px;
   }
-
   .circle-3 {
     display: none;
   }
