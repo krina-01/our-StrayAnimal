@@ -4,7 +4,8 @@ const apiClient = axios.create({
   baseURL: 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true   // 新增：允许携带 Cookie/Session，解决 CORS 认证问题
 })
 
 export const userApi = {

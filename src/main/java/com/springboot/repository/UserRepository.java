@@ -23,7 +23,8 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findAll();
 
@@ -41,7 +42,8 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     Optional<User> findById(@Param("id") Long id);
 
@@ -59,7 +61,8 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     Optional<User> findByUsername(@Param("username") String username);
 
@@ -77,7 +80,8 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByRole(@Param("role") String role);
 
@@ -95,7 +99,8 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByIsVolunteer(@Param("isVolunteer") Boolean isVolunteer);
 
@@ -113,15 +118,15 @@ public interface UserRepository {
             @Result(property = "birthYear", column = "birth_year"),
             @Result(property = "isPetExperience", column = "is_pet_experience"),
             @Result(property = "address", column = "address"),
-            @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByRegisterStatus(@Param("registerStatus") String registerStatus);
 
-    @Insert("INSERT INTO user (username, password, phone, email, role, is_volunteer, gender, has_fixed_income, birth_year, is_pet_experience, address, register_status) " +
-            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{role}, #{isVolunteer}, #{gender}, #{hasFixedIncome}, #{birthYear}, #{isPetExperience}, #{address}, #{registerStatus})")
+    @Insert("INSERT INTO user (username, password, phone, email, role, is_volunteer, gender, has_fixed_income, birth_year, is_pet_experience, address, register_status, volunteer_apply_status) " +
+            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{role}, #{isVolunteer}, #{gender}, #{hasFixedIncome}, #{birthYear}, #{isPetExperience}, #{address}, #{registerStatus}, #{volunteerApplyStatus})")
     @Options(useGeneratedKeys = true, keyProperty = "userId")
     int insert(User user);
-
     @Update("<script>" +
             "UPDATE user " +
             "<set>" +
@@ -137,6 +142,7 @@ public interface UserRepository {
             "<if test='isPetExperience != null'>is_pet_experience = #{isPetExperience},</if>" +
             "<if test='address != null'>address = #{address},</if>" +
             "<if test='registerStatus != null'>register_status = #{registerStatus},</if>" +
+            "<if test='volunteerApplyStatus != null'>volunteer_apply_status = #{volunteerApplyStatus},</if>" +
             "</set>" +
             "WHERE user_id = #{userId}" +
             "</script>")

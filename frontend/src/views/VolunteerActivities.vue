@@ -31,7 +31,7 @@
             v-else-if="!currentUser.isVolunteer && act.recruitStatus === 'recruiting' && getActivityStatus(act) === '未开始'"
             @click="alertNotVolunteer"
             class="btn-register btn-disabled">
-            申请志愿者后可报名
+            成为志愿者后可报名
           </button>
           <!-- 3. 取消报名按钮 -->
           <button v-if="canCancel(act)" @click="cancel(act.activityId)" class="btn-cancel">取消报名</button>
