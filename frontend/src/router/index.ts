@@ -39,6 +39,36 @@ const router = createRouter({
       name: 'admin-dashboard',
       component: () => import('../views/AdminDashboardView.vue'),
     },
+    {
+      path: '/adoption',
+      name: 'adoption',
+      component: () => import('../views/adoption/AdoptionView.vue'),
+    },
+    {
+      path: '/adoption-records',
+      name: 'adoption-records',
+      component: () => import('../views/adoption/AdoptionRecordsView.vue'),
+    },
+    {
+      path: '/adoption-visit',
+      name: 'adoption-visit',
+      component: () => import('../views/adoption/AdoptionVisitView.vue'),
+    },
+    {
+      path: '/surrender',
+      name: 'surrender',
+      component: () => import('../views/surrender/SurrenderView.vue'),
+    },
+    {
+      path: '/surrender/edit',
+      name: 'surrender-edit',
+      component: () => import('../views/surrender/SurrenderEditView.vue'),
+    },
+    {
+      path: '/my-animals',
+      name: 'my-animals',
+      component: () => import('../views/animal/MyAnimalsView.vue'),
+    },
   ],
 })
 

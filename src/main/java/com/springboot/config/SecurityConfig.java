@@ -24,14 +24,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login", "/api/users/admin/verify").permitAll()
-                        .requestMatchers("/api/users/pending", "/api/users/admin/all-users").permitAll()
-                        .requestMatchers("/api/users/{id}", "/api/users/{id}/approve", "/api/users/{id}/reject").permitAll()
-                        .requestMatchers("/api/users/{id}/assign-role", "/api/users/{id}/remove-role").permitAll()
-                        .requestMatchers("/api/users/{id}/apply-volunteer", "/api/users/{id}/approve-volunteer", "/api/users/{id}/cancel-volunteer").permitAll()
-                        .requestMatchers("/api/users/{id}/apply-adopter", "/api/users/{id}/approve-adopter", "/api/users/{id}/cancel-adopter").permitAll()
-                        .requestMatchers("/api/users/{id}/approve-delete", "/api/users/{id}/reject-delete").permitAll()
-                        .requestMatchers("/api/users/volunteers", "/api/users/pending-delete").permitAll()
+                        .requestMatchers("/api/users/register").permitAll()
+                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/users/admin/verify").permitAll()
+                        .requestMatchers("/api/users/pending").permitAll()
+                        .requestMatchers("/api/users/admin/all-users").permitAll()
+                        .requestMatchers("/api/users/volunteers").permitAll()
+                        .requestMatchers("/api/users/pending-delete").permitAll()
+                        .requestMatchers("/api/users/{id}").permitAll()
+                        .requestMatchers("/api/animals/**").permitAll()
+                        .requestMatchers("/api/surrender/**").permitAll()
+                        .requestMatchers("/api/adoption-applications/**").permitAll()
+                        .requestMatchers("/api/adoption-visits/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 );
@@ -42,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:5174")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     @Autowired
@@ -69,15 +69,27 @@ public class UserController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
+        System.out.println("=== 登录请求 ===");
+        System.out.println("用户名: " + username);
+        System.out.println("密码: " + password);
+
         Optional<User> user = userRepository.findByUsername(username);
         if (!user.isPresent()) {
+            System.out.println("用户不存在: " + username);
             Map<String, String> error = new HashMap<>();
             error.put("message", "用户名或密码错误");
             return ResponseEntity.status(401).body(error);
         }
 
         User foundUser = user.get();
-        if (!PasswordEncoder.matches(password, foundUser.getPassword())) {
+        System.out.println("找到用户: " + foundUser.getUsername());
+        System.out.println("数据库中的密码哈希: " + foundUser.getPassword());
+        System.out.println("用户状态: " + foundUser.getRegisterStatus());
+        
+        boolean passwordMatch = PasswordEncoder.matches(password, foundUser.getPassword());
+        System.out.println("密码匹配结果: " + passwordMatch);
+        
+        if (!passwordMatch) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "用户名或密码错误");
             return ResponseEntity.status(401).body(error);
