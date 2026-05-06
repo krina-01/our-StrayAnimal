@@ -4,7 +4,8 @@ const apiClient = axios.create({
   baseURL: 'http://localhost:8080/api',
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  withCredentials: true   // 新增：允许携带 Cookie/Session，解决 CORS 认证问题
 })
 
 export const userApi = {
@@ -56,14 +57,27 @@ export const userApi = {
     return apiClient.put(`/users/${id}/remove-role`, { role })
   },
 
+  // 志愿者申请（普通用户提交）
   applyVolunteer(id) {
     return apiClient.post(`/users/${id}/apply-volunteer`)
   },
 
-  approveVolunteer(id) {
-    return apiClient.put(`/users/${id}/approve-volunteer`)
+  // 管理员：获取所有待审核的志愿者申请
+  getVolunteerApplications() {
+    return apiClient.get('/users/volunteer-applications')
   },
 
+  // 管理员：通过志愿者申请
+  approveVolunteerApplication(id) {
+    return apiClient.put(`/users/${id}/approve-volunteer-application`)
+  },
+
+  // 管理员：拒绝志愿者申请
+  rejectVolunteerApplication(id) {
+    return apiClient.put(`/users/${id}/reject-volunteer-application`)
+  },
+
+  // 取消志愿者身份（保留）
   cancelVolunteer(id) {
     return apiClient.put(`/users/${id}/cancel-volunteer`)
   },
@@ -104,5 +118,87 @@ export const userApi = {
     return apiClient.get('/users/admin/all-users')
   }
 }
+
+// ====================== 志愿活动相关 API ======================
+export const volunteerApi = {
+  // 志愿者端
+  getActivities(status) {
+    return apiClient.get('/volunteer/activities', { params: { status } })
+  },
+
+  getActivityDetail(id) {
+    return apiClient.get(`/volunteer/activities/${id}`)
+  },
+
+  registerActivity(activityId, userId) {
+    return apiClient.post(`/volunteer/activities/${activityId}/register`, null, {
+      params: { userId }
+    })
+  },
+
+  cancelRegistration(activityId, userId) {
+    return apiClient.delete(`/volunteer/activities/${activityId}/register`, {
+      params: { userId }
+    })
+  },
+
+  checkin(activityId, userId) {
+    return apiClient.post(`/volunteer/activities/${activityId}/checkin`, null, {
+      params: { userId }
+    })
+  },
+
+  getVolunteerStats(userId) {
+    return apiClient.get(`/users/${userId}/volunteer-stats`)
+  },
+
+  getServiceRecords(userId) {
+    return apiClient.get(`/users/${userId}/service-records`)
+  },
+
+  getRegistrations(userId) {
+    return apiClient.get(`/users/${userId}/registrations`)
+  },
+
+  // 管理员端（活动管理）
+  createActivity(activityData, adminId) {
+    return apiClient.post('/volunteer/admin/activities', activityData, {
+      params: { adminId }
+    })
+  },
+
+  updateActivity(id, activityData) {
+    return apiClient.put(`/volunteer/admin/activities/${id}`, activityData)
+  },
+
+  deleteActivity(id) {
+    return apiClient.delete(`/volunteer/admin/activities/${id}`)
+  },
+
+  updateRecruitStatus(id, status) {
+    return apiClient.put(`/volunteer/admin/activities/${id}/recruit-status`, null, {
+      params: { status }
+    })
+  },
+
+  calculateDuration(activityId) {
+    return apiClient.post(`/volunteer/activities/${activityId}/calculate-duration`)
+  },
+  // 新增：报名审核
+  getPendingRegistrations() {
+    return apiClient.get('/volunteer/admin/pending-registrations')
+  },
+  approveRegistration(activityId, userId) {
+    return apiClient.put(`/volunteer/admin/registrations/${activityId}/approve`, null, {
+      params: { userId }
+    })
+  },
+  rejectRegistration(activityId, userId) {
+    return apiClient.delete(`/volunteer/admin/registrations/${activityId}/reject`, {
+      params: { userId }
+    })
+  }
+}
+
 
 export default apiClient

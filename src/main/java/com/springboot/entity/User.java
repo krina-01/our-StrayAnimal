@@ -30,4 +30,6 @@ public class User {
     private String address;
 
     private String registerStatus = "pending";
+
+    private String volunteerApplyStatus;  // pending, approved, rejected
 }

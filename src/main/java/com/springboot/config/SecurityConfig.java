@@ -2,6 +2,7 @@ package com.springboot.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,13 +27,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/users/register", "/api/users/login", "/api/users/admin/verify").permitAll()
                         .requestMatchers("/api/users/pending", "/api/users/admin/all-users").permitAll()
-                        .requestMatchers("/api/users/{id}", "/api/users/{id}/approve", "/api/users/{id}/reject").permitAll()
-                        .requestMatchers("/api/users/{id}/assign-role", "/api/users/{id}/remove-role").permitAll()
-                        .requestMatchers("/api/users/{id}/apply-volunteer", "/api/users/{id}/approve-volunteer", "/api/users/{id}/cancel-volunteer").permitAll()
-                        .requestMatchers("/api/users/{id}/apply-adopter", "/api/users/{id}/approve-adopter", "/api/users/{id}/cancel-adopter").permitAll()
-                        .requestMatchers("/api/users/{id}/approve-delete", "/api/users/{id}/reject-delete").permitAll()
+                        .requestMatchers("/api/users/*", "/api/users/*/approve", "/api/users/*/reject").permitAll()
+                        .requestMatchers("/api/users/*/assign-role", "/api/users/*/remove-role").permitAll()
+                        .requestMatchers("/api/users/*/apply-volunteer", "/api/users/*/approve-volunteer", "/api/users/*/cancel-volunteer").permitAll()
+                        .requestMatchers("/api/users/*/apply-adopter", "/api/users/*/approve-adopter", "/api/users/*/cancel-adopter").permitAll()
+                        .requestMatchers("/api/users/*/approve-delete", "/api/users/*/reject-delete").permitAll()
                         .requestMatchers("/api/users/volunteers", "/api/users/pending-delete").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/users/volunteer-applications").permitAll()
+                        .requestMatchers("/api/users/*/volunteer-stats", "/api/users/*/service-records", "/api/users/*/registrations").permitAll()
+                        .requestMatchers("/api/volunteer/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

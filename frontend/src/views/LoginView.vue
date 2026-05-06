@@ -80,56 +80,9 @@ export default {
     }
   },
   methods: {
-    validateUsername(username) {
-      if (!username || username.trim() === '') {
-        return '用户名不能为空'
-      }
-
-      const hasChinese = /[\u4e00-\u9fa5]/.test(username)
-      const hasEnglish = /[a-zA-Z]/.test(username)
-
-      if (hasChinese && hasEnglish) {
-        return '用户名不能中英文混杂，只能使用纯中文或纯英文'
-      }
-
-      if (hasChinese) {
-        if (/^[^\u4e00-\u9fa5]+$/.test(username)) {
-          return '中文用户名只能包含中文字符，不能包含数字和符号'
-        }
-        if (username.length < 2 || username.length > 20) {
-          return '用户名长度必须在2-20个字符之间'
-        }
-        return ''
-      }
-
-      if (hasEnglish) {
-        if (/[^a-zA-Z]/.test(username)) {
-          return '英文用户名只能包含字母，不能包含数字和符号'
-        }
-        if (username.length < 2 || username.length > 20) {
-          return '用户名长度必须在2-20个字符之间'
-        }
-        return ''
-      }
-
-      return '用户名只能包含中文或英文字母'
-    },
-
     async handleLogin() {
       try {
         this.errorMessage = ''
-
-        const validationError = this.validateUsername(this.loginForm.username)
-        if (validationError) {
-          this.errorMessage = validationError
-          return
-        }
-
-        if (!this.loginForm.password || this.loginForm.password.trim() === '') {
-          this.errorMessage = '密码不能为空'
-          return
-        }
-
         const response = await userApi.login(this.loginForm)
 
         localStorage.setItem('currentUser', JSON.stringify(response.data.user))

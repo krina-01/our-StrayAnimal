@@ -8,156 +8,125 @@ import java.util.Optional;
 
 @Mapper
 public interface UserRepository {
-    
+
     @Select("SELECT * FROM user")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findAll();
-    
+
     @Select("SELECT * FROM user WHERE user_id = #{id}")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     Optional<User> findById(@Param("id") Long id);
-    
+
     @Select("SELECT * FROM user WHERE username = #{username}")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     Optional<User> findByUsername(@Param("username") String username);
-    
-    @Select("SELECT * FROM user WHERE email = #{email}")
-    @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
-    })
-    Optional<User> findByEmail(@Param("email") String email);
-    
+
     @Select("SELECT * FROM user WHERE role = #{role}")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByRole(@Param("role") String role);
-    
+
     @Select("SELECT * FROM user WHERE is_volunteer = #{isVolunteer}")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByIsVolunteer(@Param("isVolunteer") Boolean isVolunteer);
 
     @Select("SELECT * FROM user WHERE register_status = #{registerStatus}")
     @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
     })
     List<User> findByRegisterStatus(@Param("registerStatus") String registerStatus);
 
-    @Select("SELECT * FROM user WHERE username = #{username} AND password = #{password}")
-    @Results({
-        @Result(property = "userId", column = "user_id"),
-        @Result(property = "username", column = "username"),
-        @Result(property = "password", column = "password"),
-        @Result(property = "phone", column = "phone"),
-        @Result(property = "email", column = "email"),
-        @Result(property = "role", column = "role"),
-        @Result(property = "isVolunteer", column = "is_volunteer"),
-        @Result(property = "gender", column = "gender"),
-        @Result(property = "hasFixedIncome", column = "has_fixed_income"),
-        @Result(property = "birthYear", column = "birth_year"),
-        @Result(property = "isPetExperience", column = "is_pet_experience"),
-        @Result(property = "address", column = "address"),
-        @Result(property = "registerStatus", column = "register_status")
-    })
-    Optional<User> findByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
-
-    @Insert("INSERT INTO user (username, password, phone, email, role, is_volunteer, gender, has_fixed_income, birth_year, is_pet_experience, address, register_status) " +
-            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{role}, #{isVolunteer}, #{gender}, #{hasFixedIncome}, #{birthYear}, #{isPetExperience}, #{address}, #{registerStatus})")
+    @Insert("INSERT INTO user (username, password, phone, email, role, is_volunteer, gender, has_fixed_income, birth_year, is_pet_experience, address, register_status, volunteer_apply_status) " +
+            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{role}, #{isVolunteer}, #{gender}, #{hasFixedIncome}, #{birthYear}, #{isPetExperience}, #{address}, #{registerStatus}, #{volunteerApplyStatus})")
     @Options(useGeneratedKeys = true, keyProperty = "userId")
     int insert(User user);
-
     @Update("<script>" +
             "UPDATE user " +
             "<set>" +
@@ -173,6 +142,7 @@ public interface UserRepository {
             "<if test='isPetExperience != null'>is_pet_experience = #{isPetExperience},</if>" +
             "<if test='address != null'>address = #{address},</if>" +
             "<if test='registerStatus != null'>register_status = #{registerStatus},</if>" +
+            "<if test='volunteerApplyStatus != null'>volunteer_apply_status = #{volunteerApplyStatus},</if>" +
             "</set>" +
             "WHERE user_id = #{userId}" +
             "</script>")
@@ -180,4 +150,8 @@ public interface UserRepository {
 
     @Delete("DELETE FROM user WHERE user_id = #{id}")
     int deleteById(@Param("id") Long id);
+
+    // 根据志愿者申请状态查询
+    @Select("SELECT * FROM user WHERE volunteer_apply_status = #{status}")
+    List<User> findByVolunteerApplyStatus(@Param("status") String status);
 }
