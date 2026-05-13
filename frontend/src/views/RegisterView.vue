@@ -110,9 +110,99 @@ export default {
     }
   },
   methods: {
+    validateUsername(username) {
+      if (!username || username.trim() === '') {
+        return '用户名不能为空'
+      }
+
+      const hasChinese = /[\u4e00-\u9fa5]/.test(username)
+      const hasEnglish = /[a-zA-Z]/.test(username)
+
+      if (hasChinese && hasEnglish) {
+        return '用户名不能中英文混杂，只能使用纯中文或纯英文'
+      }
+
+      if (hasChinese) {
+        if (/^[^\u4e00-\u9fa5]+$/.test(username)) {
+          return '中文用户名只能包含中文字符，不能包含数字和符号'
+        }
+        if (username.length < 2 || username.length > 20) {
+          return '用户名长度必须在2-20个字符之间'
+        }
+        return ''
+      }
+
+      if (hasEnglish) {
+        if (/[^a-zA-Z]/.test(username)) {
+          return '英文用户名只能包含字母，不能包含数字和符号'
+        }
+        if (username.length < 2 || username.length > 20) {
+          return '用户名长度必须在2-20个字符之间'
+        }
+        return ''
+      }
+
+      return '用户名只能包含中文或英文字母'
+    },
+
+    validatePhone(phone) {
+      if (!phone || phone.trim() === '') {
+        return ''
+      }
+
+      const phoneRegex = /^1[3-9]\d{9}$/
+      if (!phoneRegex.test(phone)) {
+        return '手机号格式不正确，必须是11位数字且以1开头'
+      }
+
+      return ''
+    },
+
+    validateEmail(email) {
+      if (!email || email.trim() === '') {
+        return ''
+      }
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(email)) {
+        return '邮箱格式不正确，例如：example@email.com'
+      }
+
+      return ''
+    },
+
     async handleRegister() {
       try {
         this.errorMessage = ''
+
+        const usernameError = this.validateUsername(this.registerForm.username)
+        if (usernameError) {
+          this.errorMessage = usernameError
+          return
+        }
+
+        if (!this.registerForm.password || this.registerForm.password.trim() === '') {
+          this.errorMessage = '密码不能为空'
+          return
+        }
+
+        if (this.registerForm.password.length < 6) {
+          this.errorMessage = '密码长度不能少于6位'
+          return
+        }
+
+        const emailError = this.validateEmail(this.registerForm.email)
+        if (emailError) {
+          this.errorMessage = emailError
+          return
+        }
+
+        const phoneError = this.validatePhone(this.registerForm.phone)
+        if (phoneError) {
+          this.errorMessage = phoneError
+          return
+        }
+
         const response = await userApi.register(this.registerForm)
 
         alert('注册成功！请等待管理员审核，审核通过后即可登录。')

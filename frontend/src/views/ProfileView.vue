@@ -187,6 +187,32 @@ export default {
     await this.loadUserInfo()
   },
   methods: {
+    validatePhone(phone) {
+      if (!phone || phone.trim() === '') {
+        return ''
+      }
+
+      const phoneRegex = /^1[3-9]\d{9}$/
+      if (!phoneRegex.test(phone)) {
+        return '手机号格式不正确，必须是11位数字且以1开头'
+      }
+
+      return ''
+    },
+
+    validateEmail(email) {
+      if (!email || email.trim() === '') {
+        return ''
+      }
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(email)) {
+        return '邮箱格式不正确，例如：example@email.com'
+      }
+
+      return ''
+    },
+
     async loadUserInfo() {
       const currentUser = localStorage.getItem('currentUser')
       if (!currentUser) {
@@ -227,6 +253,30 @@ export default {
     async handleUpdate() {
       try {
         this.message = ''
+
+        const emailError = this.validateEmail(this.userInfo.email)
+        if (emailError) {
+          this.message = emailError
+          this.messageType = 'error'
+          return
+        }
+
+        const phoneError = this.validatePhone(this.userInfo.phone)
+        if (phoneError) {
+          this.message = phoneError
+          this.messageType = 'error'
+          return
+        }
+
+        if (this.userInfo.birthYear) {
+          const currentYear = new Date().getFullYear()
+          if (this.userInfo.birthYear < 1900 || this.userInfo.birthYear > currentYear) {
+            this.message = `出生年份必须在1900到${currentYear}之间`
+            this.messageType = 'error'
+            return
+          }
+        }
+
         const response = await userApi.updateUser(this.userInfo.userId, this.userInfo)
         localStorage.setItem('currentUser', JSON.stringify(response.data))
         this.message = '个人信息更新成功！'

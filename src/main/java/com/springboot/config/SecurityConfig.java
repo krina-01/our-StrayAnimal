@@ -37,6 +37,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/*/volunteer-stats", "/api/users/*/service-records", "/api/users/*/registrations").permitAll()
                         .requestMatchers("/api/volunteer/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/users/register").permitAll()
+                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/users/admin/verify").permitAll()
+                        .requestMatchers("/api/users/pending").permitAll()
+                        .requestMatchers("/api/users/admin/all-users").permitAll()
+                        .requestMatchers("/api/users/volunteers").permitAll()
+                        .requestMatchers("/api/users/pending-delete").permitAll()
+                        .requestMatchers("/api/users/{id}").permitAll()
+                        .requestMatchers("/api/animals/**").permitAll()
+                        .requestMatchers("/api/surrender/**").permitAll()
+                        .requestMatchers("/api/adoption-applications/**").permitAll()
+                        .requestMatchers("/api/adoption-visits/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
@@ -46,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

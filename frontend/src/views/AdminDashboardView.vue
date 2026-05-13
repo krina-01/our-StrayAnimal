@@ -3,6 +3,7 @@
     <div class="dashboard-header">
       <h1>👑 管理员控制面板</h1>
       <div class="header-actions">
+        <router-link to="/adoption-review" class="btn-review">领养审核</router-link>
         <span class="admin-info">欢迎，{{ adminUser?.username }}</span>
         <button @click="handleLogout" class="btn-logout">退出登录</button>
       </div>

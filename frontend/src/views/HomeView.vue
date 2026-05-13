@@ -6,6 +6,8 @@
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
+        <router-link to="/adoption-records" class="nav-link">领养记录</router-link>
+        <router-link to="/adoption-visit" class="nav-link">回访记录</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
         <router-link to="/volunteer-activities" class="nav-link">志愿服务</router-link>   <!-- 新增 -->
         <template v-if="!currentUser">
@@ -14,6 +16,7 @@
         </template>
         <template v-else>
           <span class="welcome-text">欢迎，{{ currentUser.username }}</span>
+          <router-link to="/my-animals" class="nav-link">我的动物</router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
           <button @click="handleLogout" class="nav-link btn-logout">退出</button>
         </template>
@@ -36,12 +39,18 @@
       <section id="about" class="features-section">
         <h2>我们的服务</h2>
         <div class="features-grid">
-          <div class="feature-card">
+          <router-link to="/adoption" class="feature-card">
             <div class="feature-icon">🏠</div>
             <h3>动物领养</h3>
             <p>为流浪动物寻找温暖的家，让爱不再流浪</p>
-          </div>
-          <div class="feature-card" @click="$router.push('/volunteer-activities')">
+          </router-link>
+            <div class="feature-card" @click="$router.push('/volunteer-activities')">
+          <router-link to="/surrender" class="feature-card" v-if="currentUser">
+            <div class="feature-icon">🤲</div>
+            <h3>送养发布</h3>
+            <p>为无法继续饲养的宠物寻找新的温暖家庭</p>
+          </router-link>
+          <div class="feature-card">
             <div class="feature-icon">❤️</div>
             <h3>志愿服务</h3>
             <p>加入志愿者团队，用行动守护小生命</p>
@@ -172,6 +181,16 @@ export default {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.btn-surrender {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white !important;
+}
+
+.btn-surrender:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
 .btn-logout {
   background: transparent;
   border: 2px solid #667eea;
@@ -269,10 +288,14 @@ export default {
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .feature-card:hover {
   transform: translateY(-10px);
+  cursor: pointer;
 }
 
 .feature-icon {
