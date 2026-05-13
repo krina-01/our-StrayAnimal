@@ -22,6 +22,12 @@
         >
           所有用户 ({{ allUsers.length }})
         </button>
+        <button
+          :class="['tab-btn', { active: activeTab === 'fundraising' }]"
+          @click="activeTab = 'fundraising'"
+        >
+          待审核募捐 ({{ pendingFundraising.length }})
+        </button>
       </div>
 
       <div v-if="activeTab === 'pending'" class="tab-content">
@@ -57,58 +63,85 @@
         <div v-else class="user-table-container">
           <table class="user-table">
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>用户名</th>
-                <th>邮箱</th>
-                <th>角色</th>
-                <th>志愿者</th>
-                <th>状态</th>
-                <th>操作</th>
-              </tr>
+            <tr>
+              <th>ID</th>
+              <th>用户名</th>
+              <th>邮箱</th>
+              <th>角色</th>
+              <th>志愿者</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
             </thead>
             <tbody>
-              <tr v-for="user in allUsers" :key="user.userId">
-                <td>{{ user.userId }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email || '-' }}</td>
-                <td>
-                  <span :class="['role-badge', user.role]">{{ user.role }}</span>
-                </td>
-                <td>
+            <tr v-for="user in allUsers" :key="user.userId">
+              <td>{{ user.userId }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email || '-' }}</td>
+              <td>
+                <span :class="['role-badge', user.role]">{{ user.role }}</span>
+              </td>
+              <td>
                   <span :class="['volunteer-badge', user.isVolunteer ? 'yes' : 'no']">
                     {{ user.isVolunteer ? '是' : '否' }}
                   </span>
-                </td>
-                <td>
+              </td>
+              <td>
                   <span :class="['status-badge', user.registerStatus]">
                     {{ getStatusText(user.registerStatus) }}
                   </span>
-                </td>
-                <td>
-                  <div class="action-buttons">
-                    <select
-                      v-if="user.role !== 'admin'"
-                      @change="assignRole(user, $event.target.value)"
-                      class="role-select"
-                    >
-                      <option value="">分配角色</option>
-                      <option value="admin">管理员</option>
-                      <option value="volunteer">志愿者</option>
-                      <option value="adopter">领养人</option>
-                    </select>
-                    <button
-                      v-if="user.isVolunteer"
-                      @click="removeVolunteer(user)"
-                      class="btn-remove-volunteer"
-                    >
-                      取消志愿者
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <select
+                    v-if="user.role !== 'admin'"
+                    @change="assignRole(user, $event.target.value)"
+                    class="role-select"
+                  >
+                    <option value="">分配角色</option>
+                    <option value="admin">管理员</option>
+                    <option value="volunteer">志愿者</option>
+                    <option value="adopter">领养人</option>
+                  </select>
+                  <button
+                    v-if="user.isVolunteer"
+                    @click="removeVolunteer(user)"
+                    class="btn-remove-volunteer"
+                  >
+                    取消志愿者
+                  </button>
+                </div>
+              </td>
+            </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'fundraising'" class="tab-content">
+        <h2>待审核募捐活动</h2>
+        <div v-if="pendingFundraising.length === 0" class="empty-state">
+          <p>暂无待审核募捐活动</p>
+        </div>
+        <div v-else class="fundraising-list">
+          <div v-for="item in pendingFundraising" :key="item.fundraisingId" class="fundraising-card">
+            <div class="fundraising-info">
+              <h3>{{ item.title }}</h3>
+              <p><strong>发起人ID：</strong>{{ item.creatorId }}</p>
+              <p><strong>目标金额：</strong>¥{{ item.targetAmount }}</p>
+              <p><strong>开始时间：</strong>{{ item.startTime }}</p>
+              <p><strong>结束时间：</strong>{{ item.endTime }}</p>
+              <p class="content-preview"><strong>活动详情：</strong>{{ item.content }}</p>
+            </div>
+            <div class="fundraising-actions">
+              <button @click="approveFundraising(item)" class="btn-approve">
+                ✓ 通过
+              </button>
+              <button @click="rejectFundraising(item)" class="btn-reject">
+                ✗ 拒绝
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -116,7 +149,7 @@
 </template>
 
 <script>
-import { userApi } from '@/api/index.js'
+import { userApi, fundraisingApi } from '@/api/index.js'
 
 export default {
   name: 'AdminDashboardView',
@@ -125,6 +158,7 @@ export default {
       adminUser: null,
       pendingUsers: [],
       allUsers: [],
+      pendingFundraising: [],
       activeTab: 'pending'
     }
   },
@@ -154,6 +188,7 @@ export default {
     async loadData() {
       await this.loadPendingUsers()
       await this.loadAllUsers()
+      await this.loadPendingFundraising()
     },
 
     async loadPendingUsers() {
@@ -171,6 +206,15 @@ export default {
         this.allUsers = response.data
       } catch (error) {
         console.error('加载所有用户失败:', error)
+      }
+    },
+
+    async loadPendingFundraising() {
+      try {
+        const response = await fundraisingApi.getFundraisingByStatus('pending')
+        this.pendingFundraising = response.data
+      } catch (error) {
+        console.error('加载待审核募捐失败:', error)
       }
     },
 
@@ -197,6 +241,34 @@ export default {
         await userApi.rejectUser(user.userId)
         alert('已拒绝')
         await this.loadData()
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
+      }
+    },
+
+    async approveFundraising(item) {
+      if (!confirm(`确定要通过募捐活动 "${item.title}" 吗？`)) {
+        return
+      }
+
+      try {
+        await axios.put(`http://localhost:8080/api/fundraising/approve/${item.fundraisingId}`)
+        alert('审核通过，活动已发布')
+        await this.loadPendingFundraising()
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
+      }
+    },
+
+    async rejectFundraising(item) {
+      if (!confirm(`确定要拒绝募捐活动 "${item.title}" 吗？`)) {
+        return
+      }
+
+      try {
+        await axios.put(`http://localhost:8080/api/fundraising/reject/${item.fundraisingId}`)
+        alert('已拒绝')
+        await this.loadPendingFundraising()
       } catch (error) {
         alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
       }
@@ -373,12 +445,14 @@ export default {
   font-size: 18px;
 }
 
-.user-list {
+.user-list,
+.fundraising-list {
   display: grid;
   gap: 20px;
 }
 
-.user-card {
+.user-card,
+.fundraising-card {
   border: 2px solid #e0e0e0;
   border-radius: 10px;
   padding: 20px;
@@ -388,23 +462,33 @@ export default {
   transition: all 0.3s ease;
 }
 
-.user-card:hover {
+.user-card:hover,
+.fundraising-card:hover {
   border-color: #1e3c72;
   box-shadow: 0 4px 12px rgba(30, 60, 114, 0.1);
 }
 
-.user-info h3 {
+.user-info h3,
+.fundraising-info h3 {
   margin: 0 0 10px 0;
   color: #1e3c72;
   font-size: 20px;
 }
 
-.user-info p {
+.user-info p,
+.fundraising-info p {
   margin: 5px 0;
   color: #666;
 }
 
-.user-actions {
+.content-preview {
+  max-height: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-actions,
+.fundraising-actions {
   display: flex;
   gap: 10px;
 }
@@ -590,13 +674,15 @@ export default {
     padding: 20px;
   }
 
-  .user-card {
+  .user-card,
+  .fundraising-card {
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
   }
 
-  .user-actions {
+  .user-actions,
+  .fundraising-actions {
     width: 100%;
     justify-content: flex-end;
   }

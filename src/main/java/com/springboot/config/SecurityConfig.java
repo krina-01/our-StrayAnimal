@@ -32,17 +32,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/{id}/apply-adopter", "/api/users/{id}/approve-adopter", "/api/users/{id}/cancel-adopter").permitAll()
                         .requestMatchers("/api/users/{id}/approve-delete", "/api/users/{id}/reject-delete").permitAll()
                         .requestMatchers("/api/users/volunteers", "/api/users/pending-delete").permitAll()
+                        .requestMatchers("/api/fundraising/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         return http.build();
     }
 
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5174"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

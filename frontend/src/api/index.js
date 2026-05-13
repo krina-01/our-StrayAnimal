@@ -105,4 +105,38 @@ export const userApi = {
   }
 }
 
+export const fundraisingApi = {
+  getAllFundraising() {
+    return apiClient.get('/fundraising/list')
+  },
+
+  getFundraisingByStatus(status) {
+    return apiClient.get(`/fundraising/status/${status}`)
+  },
+
+  getFundraisingDetail(id) {
+    return apiClient.get(`/fundraising/detail/${id}`)
+  },
+
+  createFundraising(fundraisingData) {
+    return apiClient.post('/fundraising/create', fundraisingData)
+  },
+
+  donate(donationData) {
+    return apiClient.post('/fundraising/donate', donationData)
+  },
+
+  getMyDonations(userId) {
+    return apiClient.get(`/fundraising/my-donations/${userId}`)
+  },
+
+  getSummary(fundraisingId) {
+    return apiClient.get(`/fundraising/summary/${fundraisingId}`)
+  },
+
+  getDetails(fundraisingId) {
+    return apiClient.get(`/fundraising/details/${fundraisingId}`)
+  }
+}
+
 export default apiClient

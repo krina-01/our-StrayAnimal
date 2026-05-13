@@ -39,6 +39,21 @@ const router = createRouter({
       name: 'admin-dashboard',
       component: () => import('../views/AdminDashboardView.vue'),
     },
+    {
+      path: '/fundraising',
+      name: 'fundraising',
+      component: () => import('../views/FundraisingListView.vue'),
+    },
+    {
+      path: '/fundraising/create',
+      name: 'fundraising-create',
+      component: () => import('../views/CreateFundraisingView.vue'),
+    },
+    {
+      path: '/fundraising/:id',
+      name: 'fundraising-detail',
+      component: () => import('../views/FundraisingDetailView.vue'),
+    },
   ],
 })
 
