@@ -9,13 +9,16 @@ public class AdoptionApplication {
     private Integer userId;
     private Integer surrenderId;
     private LocalDateTime applicationTime;
-    private String auditStatus;
+    private String auditStatus="pending";
     private LocalDateTime auditTime;
     private LocalDateTime agreementSignTime;
     private String agreementContent;
     private String agreementStatus;
 
+    private String adoptionReason;
+
+    private SurrenderInfo surrender;
+
     private User user;
     private SurrenderInfo surrenderInfo;
 }
-

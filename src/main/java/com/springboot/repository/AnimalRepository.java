@@ -9,72 +9,29 @@ import java.util.Optional;
 @Mapper
 public interface AnimalRepository {
 
-    @Select("SELECT * FROM animal")
-    @Results({
-            @Result(property = "animalId", column = "animal_id"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "species", column = "species"),
-            @Result(property = "age", column = "age"),
-            @Result(property = "gender", column = "gender"),
-            @Result(property = "healthStatus", column = "health_status"),
-            @Result(property = "adoptStatus", column = "adopt_status"),
-            @Result(property = "rescueRecord", column = "rescue_record"),
-            @Result(property = "entryTime", column = "entry_time"),
-            @Result(property = "location", column = "location")
-    })
+    @Select("SELECT animal_id AS animalId, name, species, age, gender, health_status AS healthStatus, " +
+            "adopt_status AS adoptStatus, rescue_record AS rescueRecord, entry_time AS entryTime, " +
+            "location, user_id AS userId FROM animal")
     List<Animal> findAll();
 
-    @Select("SELECT * FROM animal WHERE animal_id = #{id}")
-    @Results({
-            @Result(property = "animalId", column = "animal_id"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "species", column = "species"),
-            @Result(property = "age", column = "age"),
-            @Result(property = "gender", column = "gender"),
-            @Result(property = "healthStatus", column = "health_status"),
-            @Result(property = "adoptStatus", column = "adopt_status"),
-            @Result(property = "rescueRecord", column = "rescue_record"),
-            @Result(property = "entryTime", column = "entry_time"),
-            @Result(property = "location", column = "location")
-    })
-    Optional<Animal> findById(@Param("id") Integer id);
+    @Select("SELECT animal_id AS animalId, name, species, age, gender, health_status AS healthStatus, " +
+            "adopt_status AS adoptStatus, rescue_record AS rescueRecord, entry_time AS entryTime, " +
+            "location, user_id AS userId FROM animal WHERE animal_id = #{animalId}")
+    Animal findById(Integer animalId);
 
-    @Select("SELECT * FROM animal WHERE adopt_status = #{adoptStatus}")
-    @Results({
-            @Result(property = "animalId", column = "animal_id"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "species", column = "species"),
-            @Result(property = "age", column = "age"),
-            @Result(property = "gender", column = "gender"),
-            @Result(property = "healthStatus", column = "health_status"),
-            @Result(property = "adoptStatus", column = "adopt_status"),
-            @Result(property = "rescueRecord", column = "rescue_record"),
-            @Result(property = "entryTime", column = "entry_time"),
-            @Result(property = "location", column = "location")
-    })
-    List<Animal> findByAdoptStatus(@Param("adoptStatus") String adoptStatus);
+    @Select("SELECT a.animal_id AS animalId, a.name, a.species, a.age, a.gender, a.health_status AS healthStatus, " +
+            "a.adopt_status AS adoptStatus, a.rescue_record AS rescueRecord, a.entry_time AS entryTime, " +
+            "a.location, a.user_id AS userId " +
+            "FROM animal a " +
+            "INNER JOIN surrender_info s ON a.animal_id = s.animal_id " +
+            "WHERE a.adopt_status = 'available' AND s.status = 'published'")
+    List<Animal> findAvailableAnimals();
 
-    @Insert("INSERT INTO animal (name, species, age, gender, health_status, adopt_status, rescue_record, entry_time, location) " +
-            "VALUES (#{name}, #{species}, #{age}, #{gender}, #{healthStatus}, #{adoptStatus}, #{rescueRecord}, #{entryTime}, #{location})")
-    @Options(useGeneratedKeys = true, keyProperty = "animalId")
-    int insert(Animal animal);
+    @Select("SELECT animal_id AS animalId, name, species, age, gender, health_status AS healthStatus, " +
+            "adopt_status AS adoptStatus, rescue_record AS rescueRecord, entry_time AS entryTime, " +
+            "location, user_id AS userId FROM animal WHERE user_id = #{userId}")
+    List<Animal> findByUserId(Integer userId);
 
-    @Update("<script>" +
-            "UPDATE animal " +
-            "<set>" +
-            "<if test='name != null'>name = #{name},</if>" +
-            "<if test='species != null'>species = #{species},</if>" +
-            "<if test='age != null'>age = #{age},</if>" +
-            "<if test='gender != null'>gender = #{gender},</if>" +
-            "<if test='healthStatus != null'>health_status = #{healthStatus},</if>" +
-            "<if test='adoptStatus != null'>adopt_status = #{adoptStatus},</if>" +
-            "<if test='rescueRecord != null'>rescue_record = #{rescueRecord},</if>" +
-            "<if test='location != null'>location = #{location},</if>" +
-            "</set>" +
-            "WHERE animal_id = #{animalId}" +
-            "</script>")
-    int update(Animal animal);
-
-    @Delete("DELETE FROM animal WHERE animal_id = #{id}")
-    int deleteById(@Param("id") Integer id);
+    @Update("UPDATE animal SET adopt_status = #{status} WHERE animal_id = #{animalId}")
+    int updateAnimalStatus(@Param("animalId") Integer animalId, @Param("status") String status);
 }

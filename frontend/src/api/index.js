@@ -119,6 +119,92 @@ export const userApi = {
   }
 }
 
+export const animalApi = {
+  getAllAnimals() {
+    return apiClient.get('/animals')
+  },
+
+  getAvailableAnimals() {
+    return apiClient.get('/animals/available')
+  },
+
+  getAnimalById(id) {
+    return apiClient.get(`/animals/${id}`)
+  },
+
+  getAnimalsByUserId(userId) {
+    return apiClient.get(`/animals/user/${userId}`)
+  }
+}
+
+export const adoptionApplicationApi = {
+  getAllApplications() {
+    return apiClient.get('/adoption-applications')
+  },
+
+  getApplicationById(id) {
+    return apiClient.get(`/adoption-applications/${id}`)
+  },
+
+  getApplicationsByStatus(status) {
+    return apiClient.get(`/adoption-applications/status/${status}`)
+  },
+
+  getApplicationsByUserId(userId) {
+    return apiClient.get(`/adoption-applications/user/${userId}`)
+  },
+
+  getApplicationsBySurrenderId(surrenderId) {
+    return apiClient.get(`/adoption-applications/surrender/${surrenderId}`)
+  },
+
+  createApplication(applicationData) {
+    return apiClient.post('/adoption-applications', applicationData)
+  },
+
+  approveApplication(id) {
+    return apiClient.put(`/adoption-applications/${id}/approve`)
+  },
+
+  rejectApplication(id) {
+    return apiClient.put(`/adoption-applications/${id}/reject`)
+  },
+
+  signAgreement(id, agreementContent) {
+    return apiClient.put(`/adoption-applications/${id}/sign-agreement`, { agreementContent })
+  },
+
+  deleteApplication(id) {
+    return apiClient.delete(`/adoption-applications/${id}`)
+  }
+}
+
+export const surrenderApi = {
+  getSurrenderListByUser(userId) {
+    return apiClient.get(`/surrender/user/${userId}`)
+  },
+
+  getSurrenderById(id) {
+    return apiClient.get(`/surrender/${id}`)
+  },
+
+  getSurrenderByAnimalId(animalId) {
+    return apiClient.get(`/surrender/animal/${animalId}`)
+  },
+
+  publishSurrender(data) {
+    return apiClient.post('/surrender/publish', data)
+  },
+
+  approveSurrender(id) {
+    return apiClient.put(`/surrender/${id}/approve`)
+  },
+
+  rejectSurrender(id) {
+    return apiClient.put(`/surrender/${id}/reject`)
+  }
+}
+
 // ====================== 志愿活动相关 API ======================
 export const volunteerApi = {
   // 志愿者端

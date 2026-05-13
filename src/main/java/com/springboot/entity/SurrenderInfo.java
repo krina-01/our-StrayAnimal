@@ -10,9 +10,9 @@ public class SurrenderInfo {
     private Integer animalId;
     private String surrenderReason;
     private LocalDateTime submitTime;
-    private String auditStatus;
+    private String auditStatus="pending";
     private LocalDateTime auditTime;
-
     private User user;
     private Animal animal;
+    private String status="pending";
 }

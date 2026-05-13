@@ -37,14 +37,18 @@ public class UserController {
         if (user.isPresent()) {
             return ResponseEntity.ok(user.get());
         } else {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
     }
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
         if (existingUser.isPresent()) {
-            return ResponseEntity.status(400).body(Map.of("message", "用户名已存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户名已存在");
+            return ResponseEntity.status(400).body(error);
         }
 
         String encodedPassword = PasswordEncoder.encode(user.getPassword());
@@ -58,11 +62,11 @@ public class UserController {
 
         userRepository.insert(user);
         User savedUser = userRepository.findById(user.getUserId().longValue()).get();
-
-        return ResponseEntity.ok(Map.of(
-                "message", "注册成功,等待管理员审核",
-                "user", savedUser
-        ));
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "注册成功,等待管理员审核");
+        response.put("user", savedUser);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -70,50 +74,90 @@ public class UserController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
+        System.out.println("=== 登录请求 ===");
+        System.out.println("用户名: " + username);
+        System.out.println("密码: " + password);
+
         Optional<User> user = userRepository.findByUsername(username);
         if (!user.isPresent()) {
-            return ResponseEntity.status(401).body(Map.of("message", "用户名或密码错误"));
+            System.out.println("用户不存在: " + username);
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户名或密码错误");
+            return ResponseEntity.status(401).body(error);
         }
 
         User foundUser = user.get();
-        if (!PasswordEncoder.matches(password, foundUser.getPassword())) {
-            return ResponseEntity.status(401).body(Map.of("message", "用户名或密码错误"));
+        System.out.println("找到用户: " + foundUser.getUsername());
+        System.out.println("数据库中的密码哈希: " + foundUser.getPassword());
+        System.out.println("用户状态: " + foundUser.getRegisterStatus());
+
+        boolean passwordMatch = PasswordEncoder.matches(password, foundUser.getPassword());
+        System.out.println("密码匹配结果: " + passwordMatch);
+
+        if (!passwordMatch) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户名或密码错误");
+            return ResponseEntity.status(401).body(error);
         }
 
-        String status = foundUser.getRegisterStatus();
-        if ("pending".equals(status)) {
-            return ResponseEntity.status(403).body(Map.of("message", "账号正在审核中，请耐心等待"));
-        }
-        if ("rejected".equals(status)) {
-            return ResponseEntity.status(403).body(Map.of("message", "账号审核未通过"));
+        if ("pending".equals(foundUser.getRegisterStatus())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "账号正在审核中，请耐心等待");
+            return ResponseEntity.status(403).body(error);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "message", "登录成功",
-                "user", foundUser
-        ));
+        if ("rejected".equals(foundUser.getRegisterStatus())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "账号审核未通过");
+            return ResponseEntity.status(403).body(error);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "登录成功");
+        response.put("user", foundUser);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody User userDetails) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
 
         User user = optionalUser.get();
-        if (userDetails.getUsername() != null) user.setUsername(userDetails.getUsername());
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-            user.setPassword(PasswordEncoder.encode(userDetails.getPassword()));
+
+        if (userDetails.getUsername() != null) {
+            user.setUsername(userDetails.getUsername());
         }
-        if (userDetails.getPhone() != null) user.setPhone(userDetails.getPhone());
-        if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
-        if (userDetails.getGender() != null) user.setGender(userDetails.getGender());
-        if (userDetails.getHasFixedIncome() != null) user.setHasFixedIncome(userDetails.getHasFixedIncome());
-        if (userDetails.getBirthYear() != null) user.setBirthYear(userDetails.getBirthYear());
-        if (userDetails.getIsPetExperience() != null) user.setIsPetExperience(userDetails.getIsPetExperience());
-        if (userDetails.getAddress() != null) user.setAddress(userDetails.getAddress());
-        // 不允许通过此接口直接修改志愿者申请状态和是否为志愿者，应由管理员审核接口控制
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            String encodedPassword = PasswordEncoder.encode(userDetails.getPassword());
+            user.setPassword(encodedPassword);
+        }
+        if (userDetails.getPhone() != null) {
+            user.setPhone(userDetails.getPhone());
+        }
+        if (userDetails.getEmail() != null) {
+            user.setEmail(userDetails.getEmail());
+        }
+        if (userDetails.getGender() != null) {
+            user.setGender(userDetails.getGender());
+        }
+        if (userDetails.getHasFixedIncome() != null) {
+            user.setHasFixedIncome(userDetails.getHasFixedIncome());
+        }
+        if (userDetails.getBirthYear() != null) {
+            user.setBirthYear(userDetails.getBirthYear());
+        }
+        if (userDetails.getIsPetExperience() != null) {
+            user.setIsPetExperience(userDetails.getIsPetExperience());
+        }
+        if (userDetails.getAddress() != null) {
+            user.setAddress(userDetails.getAddress());
+        }
+
         userRepository.update(user);
         User updatedUser = userRepository.findById(user.getUserId().longValue()).get();
         return ResponseEntity.ok(updatedUser);
@@ -123,16 +167,19 @@ public class UserController {
     public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
         Optional<User> user = userRepository.findById(id.longValue());
         if (!user.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
 
         User userToDelete = user.get();
         userToDelete.setRegisterStatus("pending_delete");
         userRepository.update(userToDelete);
-        return ResponseEntity.ok(Map.of("message", "注销申请已提交,等待管理员审核"));
-    }
 
-    // ==================== 查询辅助接口 ====================
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "注销申请已提交,等待管理员审核");
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping("/username/{username}")
     public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
@@ -140,7 +187,9 @@ public class UserController {
         if (user.isPresent()) {
             return ResponseEntity.ok(user.get());
         } else {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
     }
 
@@ -159,95 +208,90 @@ public class UserController {
         return userRepository.findByRegisterStatus("pending");
     }
 
-    @GetMapping("/pending-delete")
-    public List<User> getPendingDeleteUsers() {
-        return userRepository.findByRegisterStatus("pending_delete");
-    }
-
-    // ==================== 管理员：注册审核 ====================
-
     @PutMapping("/{id}/approve")
     public ResponseEntity<?> approveUser(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         user.setRegisterStatus("approved");
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "审核通过"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "审核通过");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/reject")
     public ResponseEntity<?> rejectUser(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         user.setRegisterStatus("rejected");
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "审核拒绝"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "审核拒绝");
+        return ResponseEntity.ok(response);
     }
-
-    // ==================== 管理员：注销审核 ====================
-
-    @PutMapping("/{id}/approve-delete")
-    public ResponseEntity<?> approveDelete(@PathVariable Integer id) {
-        Optional<User> optionalUser = userRepository.findById(id.longValue());
-        if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
-        }
-        userRepository.deleteById(id.longValue());
-        return ResponseEntity.ok(Map.of("message", "注销申请已通过,账户已删除"));
-    }
-
-    @PutMapping("/{id}/reject-delete")
-    public ResponseEntity<?> rejectDelete(@PathVariable Integer id) {
-        Optional<User> optionalUser = userRepository.findById(id.longValue());
-        if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
-        }
-        User user = optionalUser.get();
-        user.setRegisterStatus("approved");
-        userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "注销申请已拒绝"));
-    }
-
-    // ==================== 管理员：角色分配（旧功能保留） ====================
 
     @PutMapping("/{id}/assign-role")
     public ResponseEntity<?> assignRole(@PathVariable Integer id, @RequestBody Map<String, String> requestData) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         String role = requestData.get("role");
+        
         if ("admin".equals(role)) {
             user.setRole("admin");
         } else if ("volunteer".equals(role)) {
             user.setIsVolunteer(true);
             user.setVolunteerApplyStatus("approved"); // 手动分配时同步状态
         }
+        
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "权限分配成功"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "权限分配成功");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/remove-role")
     public ResponseEntity<?> removeRole(@PathVariable Integer id, @RequestBody Map<String, String> requestData) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         String role = requestData.get("role");
+        
         if ("volunteer".equals(role)) {
             user.setIsVolunteer(false);
             user.setVolunteerApplyStatus("none");
         }
+        
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "权限移除成功"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "权限移除成功");
+        return ResponseEntity.ok(response);
     }
 
     // ==================== 志愿者申请流程（提交+审核） ====================
@@ -259,7 +303,9 @@ public class UserController {
     public ResponseEntity<?> applyVolunteer(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
         User user = optionalUser.get();
         if (Boolean.TRUE.equals(user.getIsVolunteer())) {
@@ -282,15 +328,15 @@ public class UserController {
         return ResponseEntity.ok(pendingList);
     }
 
-    /**
-     * 管理员通过志愿者申请
-     */
-    @PutMapping("/{id}/approve-volunteer-application")
-    public ResponseEntity<?> approveVolunteerApplication(@PathVariable Integer id) {
+    @PutMapping("/{id}/approve-volunteer")
+    public ResponseEntity<?> approveVolunteer(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         if (!"pending".equals(user.getVolunteerApplyStatus())) {
             return ResponseEntity.badRequest().body(Map.of("message", "该用户没有待审核的志愿者申请"));
@@ -319,61 +365,113 @@ public class UserController {
         return ResponseEntity.ok(Map.of("message", "志愿者申请已拒绝"));
     }
 
-    /**
-     * 志愿者主动取消志愿者身份（保留接口，可选）
-     */
     @PutMapping("/{id}/cancel-volunteer")
     public ResponseEntity<?> cancelVolunteer(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
+
         User user = optionalUser.get();
         user.setIsVolunteer(false);
         user.setVolunteerApplyStatus("none");
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "已取消志愿者身份"));
-    }
 
-    // ==================== 领养人申请（简化版，保留原有逻辑） ====================
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "已取消志愿者身份");
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/{id}/apply-adopter")
     public ResponseEntity<?> applyAdopter(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
-        // 注：实际应增加领养人申请状态字段，为简化直接返回消息
-        return ResponseEntity.ok(Map.of("message", "领养人申请已提交，等待管理员审核"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "领养人申请已提交，等待管理员审核");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/approve-adopter")
     public ResponseEntity<?> approveAdopter(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
         User user = optionalUser.get();
         user.setRole("adopter");
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "领养人申请已通过"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "领养人申请已通过");
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/cancel-adopter")
     public ResponseEntity<?> cancelAdopter(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
         if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
         }
         User user = optionalUser.get();
         if ("adopter".equals(user.getRole())) {
             user.setRole("user");
         }
         userRepository.update(user);
-        return ResponseEntity.ok(Map.of("message", "已取消领养人身份"));
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "已取消领养人身份");
+        return ResponseEntity.ok(response);
     }
 
-    // ==================== 管理员专用认证与全量查询 ====================
+    @GetMapping("/pending-delete")
+    public List<User> getPendingDeleteUsers() {
+        return userRepository.findByRegisterStatus("pending_delete");
+    }
+
+    @PutMapping("/{id}/approve-delete")
+    public ResponseEntity<?> approveDelete(@PathVariable Integer id) {
+        Optional<User> optionalUser = userRepository.findById(id.longValue());
+        if (!optionalUser.isPresent()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
+        }
+
+        userRepository.deleteById(id.longValue());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "注销申请已通过,账户已删除");
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/reject-delete")
+    public ResponseEntity<?> rejectDelete(@PathVariable Integer id) {
+        Optional<User> optionalUser = userRepository.findById(id.longValue());
+        if (!optionalUser.isPresent()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户不存在");
+            return ResponseEntity.status(404).body(error);
+        }
+
+        User user = optionalUser.get();
+        user.setRegisterStatus("approved");
+        userRepository.update(user);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "注销申请已拒绝");
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/admin/verify")
     public ResponseEntity<?> verifyAdmin(@RequestBody Map<String, String> loginData) {
@@ -382,24 +480,33 @@ public class UserController {
 
         Optional<User> user = userRepository.findByUsername(username);
         if (!user.isPresent()) {
-            return ResponseEntity.status(401).body(Map.of("message", "用户名或密码错误"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户名或密码错误");
+            return ResponseEntity.status(401).body(error);
         }
+
         User foundUser = user.get();
         if (!PasswordEncoder.matches(password, foundUser.getPassword())) {
-            return ResponseEntity.status(401).body(Map.of("message", "用户名或密码错误"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "用户名或密码错误");
+            return ResponseEntity.status(401).body(error);
         }
         if (!"admin".equals(foundUser.getRole())) {
-            return ResponseEntity.status(403).body(Map.of("message", "无权访问，仅管理员可登录"));
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "无权访问，仅管理员可登录");
+            return ResponseEntity.status(403).body(error);
         }
-        return ResponseEntity.ok(Map.of(
-                "message", "管理员登录成功",
-                "user", foundUser
-        ));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "管理员登录成功");
+        response.put("user", foundUser);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin/all-users")
     public ResponseEntity<?> getAllUsersForAdmin() {
-        return ResponseEntity.ok(userRepository.findAll());
+        List<User> users = userRepository.findAll();
+        return ResponseEntity.ok(users);
     }
 
     // ==================== 志愿者数据统计 ====================

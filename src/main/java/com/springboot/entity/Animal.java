@@ -11,8 +11,9 @@ public class Animal {
     private Integer age;
     private String gender;
     private String healthStatus;
-    private String adoptStatus;
+    private String adoptStatus="pending";
     private String rescueRecord;
     private LocalDateTime entryTime;
     private String location;
+    private Integer userId;
 }
