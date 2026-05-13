@@ -3,6 +3,7 @@ package com.springboot.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -37,6 +38,19 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/*/volunteer-stats", "/api/users/*/service-records", "/api/users/*/registrations").permitAll()
                         .requestMatchers("/api/volunteer/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/users/register").permitAll()
+                        .requestMatchers("/api/users/login").permitAll()
+                        .requestMatchers("/api/users/admin/verify").permitAll()
+                        .requestMatchers("/api/users/pending").permitAll()
+                        .requestMatchers("/api/users/admin/all-users").permitAll()
+                        .requestMatchers("/api/users/volunteers").permitAll()
+                        .requestMatchers("/api/users/pending-delete").permitAll()
+                        .requestMatchers("/api/users/{id}").permitAll()
+                        .requestMatchers("/api/animals/**").permitAll()
+                        .requestMatchers("/api/surrender/**").permitAll()
+                        .requestMatchers("/api/adoption-applications/**").permitAll()
+                        .requestMatchers("/api/adoption-visits/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
