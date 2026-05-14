@@ -17,10 +17,10 @@ public interface AdoptionApplicationRepository {
         @Result(property = "applicationTime", column = "application_time"),
         @Result(property = "auditStatus", column = "audit_status"),
         @Result(property = "auditTime", column = "audit_time"),
-        @Result(property = "auditRemark", column = "audit_remark"),
         @Result(property = "agreementSignTime", column = "agreement_sign_time"),
         @Result(property = "agreementContent", column = "agreement_content"),
         @Result(property = "agreementStatus", column = "agreement_status"),
+        @Result(property = "adoptionReason", column = "adoption_reason"),
         @Result(property = "surrender", column = "surrender_id", javaType = com.springboot.entity.SurrenderInfo.class,
                 one = @One(select = "com.springboot.repository.AdoptionApplicationRepository.findSurrenderById")),
         @Result(property = "user", column = "user_id", javaType = com.springboot.entity.User.class,
@@ -52,9 +52,9 @@ public interface AdoptionApplicationRepository {
     List<AdoptionApplication> findAdoptedApplicationsByUserId(Integer userId);
 
     @Insert("INSERT INTO adoption_application(user_id, surrender_id, application_time, audit_status, " +
-            "agreement_sign_time, agreement_content, agreement_status) " +
+            "adoption_reason, agreement_sign_time, agreement_content, agreement_status) " +
             "VALUES(#{userId}, #{surrenderId}, #{applicationTime}, #{auditStatus}, " +
-            "#{agreementSignTime}, #{agreementContent}, #{agreementStatus})")
+            "#{adoptionReason}, #{agreementSignTime}, #{agreementContent}, #{agreementStatus})")
     @Options(useGeneratedKeys = true, keyProperty = "applicationId")
     void insert(AdoptionApplication adoptionApplication);
 
@@ -63,7 +63,7 @@ public interface AdoptionApplicationRepository {
             "<set>" +
             "<if test='auditStatus != null'>audit_status=#{auditStatus},</if>" +
             "<if test='auditTime != null'>audit_time=#{auditTime},</if>" +
-            "<if test='auditRemark != null'>audit_remark=#{auditRemark},</if>" +
+            "<if test='adoptionReason != null'>adoption_reason=#{adoptionReason},</if>" +
             "<if test='agreementSignTime != null'>agreement_sign_time=#{agreementSignTime},</if>" +
             "<if test='agreementContent != null'>agreement_content=#{agreementContent},</if>" +
             "<if test='agreementStatus != null'>agreement_status=#{agreementStatus},</if>" +

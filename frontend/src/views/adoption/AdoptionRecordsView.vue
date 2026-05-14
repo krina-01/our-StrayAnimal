@@ -6,8 +6,6 @@
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
-        <router-link to="/adoption" class="nav-link">动物领养</router-link>
-        <router-link to="/surrender" class="nav-link">送养发布</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
@@ -15,7 +13,7 @@
         </template>
         <template v-else>
           <span class="welcome-text">欢迎，{{ currentUser.username }}</span>
-          <router-link to="/my-animals" class="nav-link">我的动物</router-link>
+          <router-link to="/adoption-records" class="nav-link active">领养记录</router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
           <button @click="handleLogout" class="nav-link btn-logout">退出</button>
         </template>
@@ -451,9 +449,10 @@ const viewDetail = (application: any) => {
   transition: all 0.3s;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link.active {
   color: #667eea;
-  background: #f5f5f5;
+  background: #f0f2ff;
 }
 
 .btn-register {

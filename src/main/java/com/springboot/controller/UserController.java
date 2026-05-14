@@ -328,6 +328,12 @@ public class UserController {
         return ResponseEntity.ok(pendingList);
     }
 
+    @GetMapping("/adopter-applications")
+    public ResponseEntity<?> getAdopterApplications() {
+        List<User> pendingList = userRepository.findByRegisterStatus("pending_adopter");
+        return ResponseEntity.ok(pendingList);
+    }
+
     @PutMapping("/{id}/approve-volunteer")
     public ResponseEntity<?> approveVolunteer(@PathVariable Integer id) {
         Optional<User> optionalUser = userRepository.findById(id.longValue());
@@ -392,6 +398,11 @@ public class UserController {
             error.put("message", "用户不存在");
             return ResponseEntity.status(404).body(error);
         }
+
+        User user = optionalUser.get();
+        // 设置领养人申请状态为待审核
+        user.setRegisterStatus("pending_adopter");
+        userRepository.update(user);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "领养人申请已提交，等待管理员审核");

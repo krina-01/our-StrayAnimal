@@ -86,8 +86,22 @@ public interface UserActivityRepository {
             "WHERE ua.activity_id = #{activityId} AND ua.status = 'checked_in' AND ua.duration = 0")
     int calculateDurationForActivity(@Param("activityId") Integer activityId);
 
-    // 辅助结果类（用于带活动信息的查询）
-    @Data
+    @Select("SELECT * FROM user_activity WHERE status = #{status}")
+    @Results({
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "activityId", column = "activity_id"),
+            @Result(property = "duration", column = "duration"),
+            @Result(property = "status", column = "status"),
+            @Result(property = "checkinTime", column = "checkin_time")
+    })
+    List<UserActivity> findByStatus(@Param("status") String status);
+
+    @Update("UPDATE user_activity ua " +
+            "INNER JOIN volunteer_activity va ON ua.activity_id = va.activity_id " +
+            "SET ua.duration = TIMESTAMPDIFF(MINUTE, va.start_time, va.end_time) " +
+            "WHERE ua.status = 'checked_in' AND ua.duration IS NULL")
+    int calculateDurationForCheckedIn();
+
     class UserActivityWithActivity extends UserActivity {
         private String activityName;
         private LocalDateTime activityStartTime;
@@ -105,7 +119,8 @@ public interface UserActivityRepository {
         private String location;
         // getters and setters...
     }
-    @Select("SELECT ua.user_id, ua.activity_id, ua.status, ua.apply_time, " +
+
+    @Select("SELECT ua.user_id, ua.activity_id, ua.status, " +
             "u.username, u.phone, " +
             "va.activity_name, va.start_time, va.end_time, va.location " +
             "FROM user_activity ua " +

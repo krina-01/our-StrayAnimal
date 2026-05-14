@@ -33,6 +33,12 @@ public class AuditController {
     @Autowired
     private AnimalRepository animalRepository;
 
+    @Autowired
+    private UserActivityRepository userActivityRepository;
+
+    @Autowired
+    private FundraisingRepository fundraisingRepository;
+
     // ==================== 送养审核 ====================
 
     @GetMapping("/surrender/pending")
@@ -73,14 +79,13 @@ public class AuditController {
 
         SurrenderInfo surrender = optionalSurrender.get();
         surrender.setAuditStatus("approved");
+        surrender.setStatus("published");
         surrender.setAuditTime(LocalDateTime.now());
         surrenderInfoRepository.update(surrender);
 
-        Optional<Animal> optionalAnimal = animalRepository.findById(surrender.getAnimalId());
-        if (optionalAnimal.isPresent()) {
-            Animal animal = optionalAnimal.get();
-            animal.setAdoptStatus("available");
-            animalRepository.update(animal);
+        Animal animal = animalRepository.findById(surrender.getAnimalId());
+        if (animal != null) {
+            animalRepository.updateAnimalStatus(animal.getAnimalId(), "available");
         }
 
         Map<String, String> response = new HashMap<>();
@@ -155,14 +160,13 @@ public class AuditController {
     @PutMapping("/adoption/{id}/approve")
     @Transactional
     public ResponseEntity<?> approveAdoption(@PathVariable Integer id) {
-        Optional<AdoptionApplication> optionalAdoption = adoptionApplicationRepository.findById(id);
-        if (!optionalAdoption.isPresent()) {
+        AdoptionApplication adoption = adoptionApplicationRepository.findById(id);
+        if (adoption == null) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "领养申请不存在");
             return ResponseEntity.status(404).body(error);
         }
 
-        AdoptionApplication adoption = optionalAdoption.get();
         adoption.setAuditStatus("approved");
         adoption.setAuditTime(LocalDateTime.now());
         adoption.setAgreementStatus("effective");
@@ -172,11 +176,9 @@ public class AuditController {
         Optional<SurrenderInfo> optionalSurrender = surrenderInfoRepository.findById(adoption.getSurrenderId());
         if (optionalSurrender.isPresent()) {
             SurrenderInfo surrender = optionalSurrender.get();
-            Optional<Animal> optionalAnimal = animalRepository.findById(surrender.getAnimalId());
-            if (optionalAnimal.isPresent()) {
-                Animal animal = optionalAnimal.get();
-                animal.setAdoptStatus("adopted");
-                animalRepository.update(animal);
+            Animal animal = animalRepository.findById(surrender.getAnimalId());
+            if (animal != null) {
+                animalRepository.updateAnimalStatus(animal.getAnimalId(), "adopted");
             }
         }
 
@@ -187,14 +189,13 @@ public class AuditController {
 
     @PutMapping("/adoption/{id}/reject")
     public ResponseEntity<?> rejectAdoption(@PathVariable Integer id, @RequestBody(required = false) Map<String, String> reason) {
-        Optional<AdoptionApplication> optionalAdoption = adoptionApplicationRepository.findById(id);
-        if (!optionalAdoption.isPresent()) {
+        AdoptionApplication adoption = adoptionApplicationRepository.findById(id);
+        if (adoption == null) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "领养申请不存在");
             return ResponseEntity.status(404).body(error);
         }
 
-        AdoptionApplication adoption = optionalAdoption.get();
         adoption.setAuditStatus("rejected");
         adoption.setAuditTime(LocalDateTime.now());
         adoptionApplicationRepository.update(adoption);
@@ -299,6 +300,134 @@ public class AuditController {
         return ResponseEntity.ok(response);
     }
 
+    // ==================== 志愿者活动报名审核 ====================
+
+    @GetMapping("/registration/pending")
+    public ResponseEntity<?> getPendingRegistrations() {
+        List<Map<String, Object>> pendingRegistrations = userActivityRepository.findPendingRegistrations();
+        return ResponseEntity.ok(pendingRegistrations);
+    }
+
+    @PutMapping("/registration/{activityId}/approve")
+    public ResponseEntity<?> approveRegistration(@PathVariable Integer activityId, @RequestParam Integer userId) {
+        int rows = userActivityRepository.approveRegistration(userId, activityId);
+        if (rows > 0) {
+            return ResponseEntity.ok(Map.of("message", "报名审核通过"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "审核失败（可能记录不存在或状态不是 pending）"));
+        }
+    }
+
+    @DeleteMapping("/registration/{activityId}/reject")
+    public ResponseEntity<?> rejectRegistration(@PathVariable Integer activityId, @RequestParam Integer userId) {
+        int rows = userActivityRepository.cancelRegistration(userId, activityId);
+        if (rows > 0) {
+            return ResponseEntity.ok(Map.of("message", "报名已拒绝"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "拒绝失败（可能记录不存在）"));
+        }
+    }
+
+    // ==================== 领养人身份审核 ====================
+
+    @GetMapping("/adopter/pending")
+    public ResponseEntity<?> getPendingAdopters() {
+        // 假设我们用一个特定的状态来标记待审核的领养人申请，或者查询 role='user' 但有申请记录的
+        // 这里简化处理：如果 User 实体中有 registerStatus 或专门字段
+        // 如果没有专门字段，通常是通过判断 role='user' 且提交过申请的用户
+        // 为了统一，我们假设申请后 registerStatus 变为 'pending_adopter'
+        List<User> pendingAdopters = userRepository.findByRegisterStatus("pending_adopter");
+        return ResponseEntity.ok(pendingAdopters);
+    }
+
+    @PutMapping("/adopter/{id}/approve")
+    public ResponseEntity<?> approveAdopter(@PathVariable Integer id) {
+        Optional<User> optionalUser = userRepository.findById(id.longValue());
+        if (!optionalUser.isPresent()) {
+            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+        }
+        User user = optionalUser.get();
+        user.setRole("adopter"); // 提升为领养人
+        user.setRegisterStatus("approved"); // 清除待审核状态
+        userRepository.update(user);
+        return ResponseEntity.ok(Map.of("message", "已批准为领养人"));
+    }
+
+    @PutMapping("/adopter/{id}/reject")
+    public ResponseEntity<?> rejectAdopter(@PathVariable Integer id) {
+        Optional<User> optionalUser = userRepository.findById(id.longValue());
+        if (!optionalUser.isPresent()) {
+            return ResponseEntity.status(404).body(Map.of("message", "用户不存在"));
+        }
+        User user = optionalUser.get();
+        user.setRegisterStatus("rejected"); 
+        userRepository.update(user);
+        return ResponseEntity.ok(Map.of("message", "已拒绝领养人申请"));
+    }
+
+    // ==================== 募捐活动审核 ====================
+
+    @GetMapping("/fundraising/pending")
+    public List<Fundraising> getPendingFundraisings() {
+        return fundraisingRepository.findByStatus("pending");
+    }
+
+    @GetMapping("/fundraising/all")
+    public List<Fundraising> getAllFundraisings() {
+        return fundraisingRepository.findAll();
+    }
+
+    @GetMapping("/fundraising/user/{userId}")
+    public List<Fundraising> getUserFundraisings(@PathVariable Integer userId) {
+        return fundraisingRepository.findByCreatorId(userId);
+    }
+
+    @PutMapping("/fundraising/{id}/approve")
+    @Transactional
+    public ResponseEntity<?> approveFundraising(@PathVariable Integer id, @RequestBody(required = false) Map<String, String> auditData) {
+        Optional<Fundraising> optionalFundraising = fundraisingRepository.findById(id);
+        if (!optionalFundraising.isPresent()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "募捐活动不存在");
+            return ResponseEntity.status(404).body(error);
+        }
+
+        Fundraising fundraising = optionalFundraising.get();
+        fundraising.setStatus("ongoing");
+        fundraising.setUpdateTime(LocalDateTime.now());
+        fundraisingRepository.update(fundraising);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "募捐活动审核通过，已发布");
+        if (auditData != null && auditData.containsKey("remark")) {
+            response.put("remark", auditData.get("remark"));
+        }
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/fundraising/{id}/reject")
+    @Transactional
+    public ResponseEntity<?> rejectFundraising(@PathVariable Integer id, @RequestBody(required = false) Map<String, String> auditData) {
+        Optional<Fundraising> optionalFundraising = fundraisingRepository.findById(id);
+        if (!optionalFundraising.isPresent()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "募捐活动不存在");
+            return ResponseEntity.status(404).body(error);
+        }
+
+        Fundraising fundraising = optionalFundraising.get();
+        fundraising.setStatus("terminated");
+        fundraising.setUpdateTime(LocalDateTime.now());
+        fundraisingRepository.update(fundraising);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "募捐活动审核拒绝");
+        if (auditData != null && auditData.containsKey("remark")) {
+            response.put("remark", auditData.get("remark"));
+        }
+        return ResponseEntity.ok(response);
+    }
+
     // ==================== 综合审核统计 ====================
 
     @GetMapping("/statistics")
@@ -309,17 +438,22 @@ public class AuditController {
         List<User> pendingUsers = userRepository.findByRegisterStatus("pending");
         List<User> pendingVolunteers = userRepository.findByRegisterStatus("pending_volunteer");
         List<User> pendingDeletes = userRepository.findByRegisterStatus("pending_delete");
+        List<Map<String, Object>> pendingRegistrations = userActivityRepository.findPendingRegistrations();
+        List<Fundraising> pendingFundraisings = fundraisingRepository.findByStatus("pending");
 
         Map<String, Object> statistics = new HashMap<>();
         statistics.put("pendingSurrenders", pendingSurrenders.size());
         statistics.put("pendingAdoptions", pendingAdoptions.size());
         statistics.put("pendingDonations", pendingDonations.size());
+        statistics.put("pendingFundraisings", pendingFundraisings.size());
         statistics.put("pendingUsers", pendingUsers.size());
         statistics.put("pendingVolunteers", pendingVolunteers.size());
         statistics.put("pendingDeletes", pendingDeletes.size());
+        statistics.put("pendingRegistrations", pendingRegistrations.size());
         statistics.put("total", pendingSurrenders.size() + pendingAdoptions.size() + 
-                                  pendingDonations.size() + pendingUsers.size() + 
-                                  pendingVolunteers.size() + pendingDeletes.size());
+                                  pendingDonations.size() + pendingFundraisings.size() +
+                                  pendingUsers.size() + pendingVolunteers.size() + 
+                                  pendingDeletes.size() + pendingRegistrations.size());
 
         return ResponseEntity.ok(statistics);
     }

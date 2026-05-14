@@ -153,5 +153,21 @@ public interface UserRepository {
 
     // 根据志愿者申请状态查询
     @Select("SELECT * FROM user WHERE volunteer_apply_status = #{status}")
+    @Results({
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
+    })
     List<User> findByVolunteerApplyStatus(@Param("status") String status);
 }

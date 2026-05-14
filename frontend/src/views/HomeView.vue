@@ -2,7 +2,7 @@
   <div class="home-container">
     <header class="header">
       <div class="logo">
-        <h1>🐾 流浪动物救助平台</h1>
+        <h1> 流浪动物救助平台</h1>
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
@@ -10,6 +10,8 @@
         <router-link to="/adoption-visit" class="nav-link">回访记录</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
         <router-link to="/volunteer-activities" class="nav-link">志愿服务</router-link>   <!-- 新增 -->
+        <router-link to="/my-fundraisings" class="nav-link">我的募捐</router-link>
+
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
           <router-link to="/register" class="nav-link btn-register">注册</router-link>
@@ -44,7 +46,7 @@
             <h3>动物领养</h3>
             <p>为流浪动物寻找温暖的家，让爱不再流浪</p>
           </router-link>
-          <router-link to="/surrender" class="feature-card" v-if="currentUser">
+          <router-link to="/surrender" class="feature-card">
             <div class="feature-icon">🤲</div>
             <h3>送养发布</h3>
             <p>为无法继续饲养的宠物寻找新的温暖家庭</p>
@@ -54,16 +56,14 @@
             <h3>志愿服务</h3>
             <p>加入志愿者团队，用行动守护小生命</p>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon">🏥</div>
-            <h3>医疗救助</h3>
-            <p>提供专业的医疗救助，保障动物健康</p>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon">📢</div>
-            <h3>公益宣传</h3>
-            <p>传播爱护动物理念，提高公众意识</p>
-          </div>
+          <router-link to="/fundraising" class="feature-card-link">
+            <div class="feature-card">
+              <div class="feature-icon">🏥</div>
+              <h3>医疗救助</h3>
+              <p>提供专业的医疗救助，保障动物健康</p>
+            </div>
+          </router-link>
+
         </div>
       </section>
 
@@ -277,6 +277,17 @@ export default {
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
+}
+
+.feature-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.feature-card-link:hover {
+  text-decoration: none;
+  color: inherit;
 }
 
 .feature-card:hover {

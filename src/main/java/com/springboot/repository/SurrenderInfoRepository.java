@@ -1,6 +1,8 @@
 package com.springboot.repository;
 
+import com.springboot.entity.Animal;
 import com.springboot.entity.SurrenderInfo;
+import com.springboot.entity.User;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -24,11 +26,56 @@ public interface SurrenderInfoRepository {
 
     @Select("SELECT * FROM surrender_info WHERE surrender_id = #{surrenderId}")
     @ResultMap("surrenderInfoResultMap")
-    SurrenderInfo findById(Integer surrenderId);
+    Optional<SurrenderInfo> findById(Integer surrenderId);
 
     @Select("SELECT * FROM surrender_info WHERE user_id = #{userId}")
     @ResultMap("surrenderInfoResultMap")
     List<SurrenderInfo> findByUserId(Integer userId);
+
+    @Select("SELECT s.*, u.username, u.phone as user_phone, u.email as user_email, " +
+            "a.name, a.species, a.gender, a.age, a.health_status, a.adopt_status, a.rescue_record, a.entry_time, a.location " +
+            "FROM surrender_info s " +
+            "LEFT JOIN user u ON s.user_id = u.user_id " +
+            "LEFT JOIN animal a ON s.animal_id = a.animal_id " +
+            "WHERE s.audit_status = #{auditStatus}")
+    @Results(id = "surrenderInfoWithDetailsResultMap", value = {
+        @Result(property = "surrenderId", column = "surrender_id"),
+        @Result(property = "userId", column = "user_id"),
+        @Result(property = "animalId", column = "animal_id"),
+        @Result(property = "surrenderReason", column = "surrender_reason"),
+        @Result(property = "submitTime", column = "submit_time"),
+        @Result(property = "auditStatus", column = "audit_status"),
+        @Result(property = "auditTime", column = "audit_time"),
+        @Result(property = "status", column = "status"),
+        @Result(property = "user", column = "user_id", javaType = User.class, one = @One(select = "selectUserById")),
+        @Result(property = "animal", column = "animal_id", javaType = Animal.class, one = @One(select = "selectAnimalById"))
+    })
+    List<SurrenderInfo> findByAuditStatus(String auditStatus);
+
+    @Select("SELECT * FROM user WHERE user_id = #{userId}")
+    @Results({
+        @Result(property = "userId", column = "user_id"),
+        @Result(property = "username", column = "username"),
+        @Result(property = "phone", column = "phone"),
+        @Result(property = "email", column = "email")
+    })
+    User selectUserById(Integer userId);
+
+    @Select("SELECT * FROM animal WHERE animal_id = #{animalId}")
+    @Results({
+        @Result(property = "animalId", column = "animal_id"),
+        @Result(property = "name", column = "name"),
+        @Result(property = "species", column = "species"),
+        @Result(property = "age", column = "age"),
+        @Result(property = "gender", column = "gender"),
+        @Result(property = "healthStatus", column = "health_status"),
+        @Result(property = "adoptStatus", column = "adopt_status"),
+        @Result(property = "rescueRecord", column = "rescue_record"),
+        @Result(property = "entryTime", column = "entry_time"),
+        @Result(property = "location", column = "location"),
+        @Result(property = "userId", column = "user_id")
+    })
+    Animal selectAnimalById(Integer animalId);
 
     @Select("SELECT * FROM surrender_info WHERE animal_id = #{animalId}")
     @ResultMap("surrenderInfoResultMap")

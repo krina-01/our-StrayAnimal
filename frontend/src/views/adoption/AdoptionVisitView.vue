@@ -251,15 +251,15 @@ const handleLogout = () => {
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
-        <router-link to="/adoption" class="nav-link">动物领养</router-link>
-        <router-link to="/surrender" class="nav-link">送养发布</router-link>
-        <router-link to="/adoption-visit" class="nav-link active">领养回访</router-link>
+        <router-link to="/about" class="nav-link">关于我们</router-link>
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
           <router-link to="/register" class="nav-link btn-register">注册</router-link>
         </template>
         <template v-else>
           <span class="welcome-text">欢迎，{{ currentUser.username }}</span>
+          <router-link to="/adoption-visit" class="nav-link active">领养回访</router-link>
+          <router-link to="/profile" class="nav-link">个人中心</router-link>
           <button @click="handleLogout" class="nav-link btn-logout">退出</button>
         </template>
       </nav>
@@ -404,14 +404,10 @@ const handleLogout = () => {
   transition: all 0.3s;
 }
 
-.nav-link:hover {
-  color: #667eea;
-  background: #f5f5f5;
-}
-
+.nav-link:hover,
 .nav-link.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  color: #667eea;
+  background: #f0f2ff;
 }
 
 .btn-register {

@@ -7,6 +7,71 @@ const apiClient = axios.create({
   },
   withCredentials: true   // 新增：允许携带 Cookie/Session，解决 CORS 认证问题
 })
+export const fundraisingApi = {
+  getAllFundraising() {
+    return apiClient.get('/fundraising/list')
+  },
+
+  getFundraisingByStatus(status) {
+    return apiClient.get(`/fundraising/status/${status}`)
+  },
+
+  getFundraisingDetail(id) {
+    return apiClient.get(`/fundraising/detail/${id}`)
+  },
+
+  createFundraising(fundraisingData) {
+    return apiClient.post('/fundraising/create', fundraisingData)
+  },
+
+  donate(donationData) {
+    return apiClient.post('/fundraising/donate', donationData)
+  },
+
+  getMyDonations(userId) {
+    return apiClient.get(`/fundraising/my-donations/${userId}`)
+  },
+
+  getSummary(fundraisingId) {
+    return apiClient.get(`/fundraising/summary/${fundraisingId}`)
+  },
+
+  getDetails(fundraisingId) {
+    return apiClient.get(`/fundraising/details/${fundraisingId}`)
+  },
+
+  getMyFundraisings(userId) {
+    return apiClient.get(`/fundraising/my-fundraisings/${userId}`)
+  },
+
+  completeMyFundraising(id, userId) {
+    return apiClient.put(`/fundraising/my-complete/${id}`, null, {
+      params: { userId }
+    })
+  },
+
+  terminateMyFundraising(id, userId) {
+    return apiClient.put(`/fundraising/my-terminate/${id}`, null, {
+      params: { userId }
+    })
+  },
+
+  approve(id) {
+    return apiClient.put(`/fundraising/approve/${id}`)
+  },
+
+  reject(id) {
+    return apiClient.put(`/fundraising/reject/${id}`)
+  },
+
+  complete(id) {
+    return apiClient.put(`/fundraising/complete/${id}`)
+  },
+
+  terminate(id) {
+    return apiClient.put(`/fundraising/terminate/${id}`)
+  }
+}
 
 export const userApi = {
   getAllUsers() {
@@ -67,9 +132,14 @@ export const userApi = {
     return apiClient.get('/users/volunteer-applications')
   },
 
+  // 管理员：获取所有待审核的领养人申请
+  getAdopterApplications() {
+    return apiClient.get('/users/adopter-applications')
+  },
+
   // 管理员：通过志愿者申请
   approveVolunteerApplication(id) {
-    return apiClient.put(`/users/${id}/approve-volunteer-application`)
+    return apiClient.put(`/users/${id}/approve-volunteer`)
   },
 
   // 管理员：拒绝志愿者申请
@@ -126,6 +196,10 @@ export const animalApi = {
 
   getAvailableAnimals() {
     return apiClient.get('/animals/available')
+  },
+
+  getAvailableAnimalsExcludingUser(userId) {
+    return apiClient.get(`/animals/available/exclude-user/${userId}`)
   },
 
   getAnimalById(id) {
@@ -286,5 +360,71 @@ export const volunteerApi = {
   }
 }
 
+export const auditApi = {
+  surrender: {
+    getPending: () => apiClient.get('/audit/surrender/pending'),
+    getAll: () => apiClient.get('/audit/surrender/all'),
+    getByUser: (userId) => apiClient.get(`/audit/surrender/user/${userId}`),
+    submit: (data) => apiClient.post('/audit/surrender/submit', data),
+    approve: (id) => apiClient.put(`/audit/surrender/${id}/approve`),
+    reject: (id, reason) => apiClient.put(`/audit/surrender/${id}/reject`, { reason })
+  },
+  adoption: {
+    getPending: () => apiClient.get('/audit/adoption/pending'),
+    getAll: () => apiClient.get('/audit/adoption/all'),
+    getByUser: (userId) => apiClient.get(`/audit/adoption/user/${userId}`),
+    submit: (data) => apiClient.post('/audit/adoption/submit', data),
+    approve: (id) => apiClient.put(`/audit/adoption/${id}/approve`),
+    reject: (id, reason) => apiClient.put(`/audit/adoption/${id}/reject`, { reason })
+  },
+  fundraising: {
+    getPending: () => apiClient.get('/audit/fundraising/pending'),
+    getAll: () => apiClient.get('/audit/fundraising/all'),
+    getByUser: (userId) => apiClient.get(`/audit/fundraising/user/${userId}`),
+    approve: (id, remark) => apiClient.put(`/audit/fundraising/${id}/approve`, { remark }),
+    reject: (id, remark) => apiClient.put(`/audit/fundraising/${id}/reject`, { remark })
+  },
+  adopter: {
+    getPending: () => apiClient.get('/audit/adopter/pending'),
+    approve: (id) => apiClient.put(`/audit/adopter/${id}/approve`),
+    reject: (id) => apiClient.put(`/audit/adopter/${id}/reject`)
+  },
+  donation: {
+    getPending: () => apiClient.get('/audit/donation/pending'),
+    getAll: () => apiClient.get('/audit/donation/all'),
+    submit: (data) => apiClient.post('/audit/donation/withdraw', data),
+    approve: (id, publishData) => apiClient.put(`/audit/donation/${id}/approve`, publishData),
+    markPaid: (id) => apiClient.put(`/audit/donation/${id}/mark-paid`),
+    reject: (id, reason) => apiClient.put(`/audit/donation/${id}/reject`, { reason })
+  },
+  registration: {
+    getPending: () => apiClient.get('/audit/registration/pending'),
+    approve: (activityId, userId) => apiClient.put(`/audit/registration/${activityId}/approve`, null, {
+      params: { userId }
+    }),
+    reject: (activityId, userId) => apiClient.delete(`/audit/registration/${activityId}/reject`, {
+      params: { userId }
+    })
+  },
+  getStatistics: () => apiClient.get('/audit/statistics')
+}
+
+export const adminApi = {
+  getBasicStatistics() {
+    return apiClient.get('/admin/statistics/basic')
+  },
+
+  getAdoptionStatistics() {
+    return apiClient.get('/admin/statistics/adoption')
+  },
+
+  getFundraisingStatistics() {
+    return apiClient.get('/admin/statistics/fundraising')
+  },
+
+  getAnimalDistribution() {
+    return apiClient.get('/admin/statistics/animal-distribution')
+  }
+}
 
 export default apiClient

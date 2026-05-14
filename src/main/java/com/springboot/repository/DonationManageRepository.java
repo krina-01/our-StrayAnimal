@@ -52,6 +52,26 @@ public interface DonationManageRepository {
             "FROM donation_manage d " +
             "LEFT JOIN user u ON d.user_id = u.user_id " +
             "LEFT JOIN fundraising f ON d.fundraising_id = f.fundraising_id " +
+            "WHERE d.fundraising_id = #{fundraisingId}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "fundraisingId", column = "fundraising_id"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "amount", column = "amount"),
+            @Result(property = "status", column = "status"),
+            @Result(property = "title", column = "title"),
+            @Result(property = "content", column = "content"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "auditTime", column = "audit_time"),
+            @Result(property = "user.username", column = "username"),
+            @Result(property = "fundraising.title", column = "fundraising_title")
+    })
+    List<DonationManage> findByFundraisingId(@Param("fundraisingId") Integer fundraisingId);
+
+    @Select("SELECT d.*, u.username, f.title as fundraising_title " +
+            "FROM donation_manage d " +
+            "LEFT JOIN user u ON d.user_id = u.user_id " +
+            "LEFT JOIN fundraising f ON d.fundraising_id = f.fundraising_id " +
             "WHERE d.status = #{status}")
     @Results({
             @Result(property = "id", column = "id"),
@@ -68,10 +88,10 @@ public interface DonationManageRepository {
     })
     List<DonationManage> findByStatus(@Param("status") Integer status);
 
-    @Insert("INSERT INTO donation_manage (fundraising_id, user_id, amount, status, create_time) " +
-            "VALUES (#{fundraisingId}, #{userId}, #{amount}, #{status}, #{createTime})")
+    @Insert("INSERT INTO donation_manage (fundraising_id, user_id, amount, status, create_time，title, content) " +
+            "VALUES (#{fundraisingId}, #{userId}, #{amount}, #{status}, #{createTime}, #{title}, #{content})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(DonationManage donationManage);
+    int insert(DonationManage donationManage/*manage*/);
 
     @Update("<script>" +
             "UPDATE donation_manage " +
@@ -87,4 +107,6 @@ public interface DonationManageRepository {
 
     @Delete("DELETE FROM donation_manage WHERE id = #{id}")
     int deleteById(@Param("id") Integer id);
+    @Update("UPDATE donation_manage SET status = #{status}, audit_time = #{auditTime} WHERE id = #{id}")
+    int updateStatus(@Param("id") Integer id, @Param("status") Integer status, @Param("auditTime") java.time.LocalDateTime auditTime);
 }

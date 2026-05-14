@@ -38,6 +38,16 @@ public class AnimalController {
         return animals;
     }
 
+    @GetMapping("/available/exclude-user/{userId}")
+    public List<Animal> getAvailableAnimalsExcludingUser(@PathVariable Integer userId) {
+        List<Animal> animals = animalRepository.findAvailableAnimalsExcludingUser(userId);
+        System.out.println("=== 可领养动物列表（排除用户 " + userId + "）===");
+        for (Animal animal : animals) {
+            System.out.println("ID: " + animal.getAnimalId() + ", 名字: " + animal.getName() + ", 状态: " + animal.getAdoptStatus());
+        }
+        return animals;
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getAnimalById(@PathVariable Integer id) {
         Animal animal = animalRepository.findById(id);

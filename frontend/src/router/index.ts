@@ -15,6 +15,12 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/my-fundraisings',
+      name: 'MyFundraisings',
+      component: () => import('../views/MyFundraisingsView.vue')
+    },
+
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
@@ -74,6 +80,26 @@ const router = createRouter({
       path: '/my-animals',
       name: 'my-animals',
       component: () => import('../views/animal/MyAnimalsView.vue'),
+    },
+    {
+      path: '/fundraising',
+      name: 'fundraising',
+      component: () => import('../views/FundraisingListView.vue'),
+    },
+    {
+      path: '/fundraising/create',
+      name: 'fundraising-create',
+      component: () => import('../views/CreateFundraisingView.vue'),
+    },
+    {
+      path: '/fundraising/:id',
+      name: 'fundraising-detail',
+      component: () => import('../views/FundraisingDetailView.vue'),
+    },
+    {
+      path: '/audit-manage',
+      name: 'audit-manage',
+      component: () => import('../views/AuditManageView.vue'),
     },
   ],
 })

@@ -72,14 +72,6 @@
             >
               {{ getVolunteerButtonText() }}
             </button>
-            <button
-              type="button"
-              @click="handleApplyAdopter"
-              :disabled="userInfo.role === 'adopter'"
-              class="btn-apply"
-            >
-              {{ userInfo.role === 'adopter' ? '已是领养人' : '申请成为领养人' }}
-            </button>
           </div>
         </div>
 
@@ -296,7 +288,6 @@ export default {
         await userApi.applyVolunteer(this.userInfo.userId)
         this.message = '志愿者申请已提交，等待管理员审核'
         this.messageType = 'success'
-        // 刷新用户信息以显示申请状态
         await this.loadUserInfo()
       } catch (error) {
         this.message = error.response?.data?.message || '申请失败，请稍后重试'
@@ -304,37 +295,15 @@ export default {
       }
     },
 
-    async handleApplyAdopter() {
-      try {
-        await userApi.applyAdopter(this.userInfo.userId)
-        this.message = '领养人申请已提交，等待管理员审核'
-        this.messageType = 'success'
-      } catch (error) {
-        this.message = '申请失败，请稍后重试'
-        this.messageType = 'error'
-      }
-    },
-
     async handleDeleteAccount() {
-      if (!confirm('确定要注销账户吗？此操作需要管理员审核通过后才生效。')) {
-        return
-      }
-      try {
-        await userApi.deleteUser(this.userInfo.userId)
-        localStorage.removeItem('currentUser')
-        alert('注销申请已提交，等待管理员审核')
-        this.$router.push('/')
-      } catch (error) {
-        this.message = '注销申请失败，请稍后重试'
-        this.messageType = 'error'
-      }
+
     },
 
     getRoleText(role) {
       const roleMap = {
         'admin': '管理员',
-        'adopter': '领养人',
-        'user': '普通用户'
+        'user': '普通用户',
+        'volunteer': '志愿者'
       }
       return roleMap[role] || role
     },

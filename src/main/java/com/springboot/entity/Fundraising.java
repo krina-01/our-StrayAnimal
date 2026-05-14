@@ -9,6 +9,7 @@ public class Fundraising {
     private Integer fundraisingId;
     private String title;
     private String content;
+    private String purpose;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
     private LocalDateTime startTime;
@@ -21,3 +22,4 @@ public class Fundraising {
 
     private User creator;
 }
+

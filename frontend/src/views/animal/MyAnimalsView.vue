@@ -6,7 +6,6 @@
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
-        <router-link to="/adoption" class="nav-link">动物领养</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
@@ -46,7 +45,12 @@
             class="animal-card"
           >
             <div class="animal-info">
-              <h3>{{ animal.name }}</h3>
+              <div class="card-header">
+                <h3>{{ animal.name }}</h3>
+                <span :class="['status-badge', getAdoptStatusClass(animal.adoptStatus)]">
+                  {{ getAdoptStatusText(animal.adoptStatus) }}
+                </span>
+              </div>
               <div class="animal-details">
                 <span class="detail-item">
                   <span class="icon">{{ getTypeIcon(animal.species) }}</span>
@@ -85,6 +89,12 @@
         <div class="modal-body">
           <div class="detail-section">
             <div class="detail-info">
+              <div class="info-row">
+                <span class="info-label">📊 领养状态：</span>
+                <span :class="['status-badge-inline', getAdoptStatusClass(selectedAnimal?.adoptStatus)]">
+                  {{ getAdoptStatusText(selectedAnimal?.adoptStatus) }}
+                </span>
+              </div>
               <div class="info-row">
                 <span class="info-label">🏷️ 名称：</span>
                 <span class="info-value">{{ selectedAnimal?.name }}</span>
@@ -216,6 +226,22 @@ export default {
     closeDetailModal() {
       this.showDetailModal = false
       this.selectedAnimal = null
+    },
+    getAdoptStatusText(status) {
+      const statusMap = {
+        available: '可领养',
+        pending: '审核中',
+        adopted: '已领养'
+      }
+      return statusMap[status] || status
+    },
+    getAdoptStatusClass(status) {
+      const statusMap = {
+        available: 'available',
+        pending: 'pending',
+        adopted: 'adopted'
+      }
+      return statusMap[status] || 'default'
     }
   }
 }
@@ -382,38 +408,53 @@ export default {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+.animal-info {
+  padding: 25px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+  flex: 1;
+}
 
 .status-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: bold;
   color: white;
+  white-space: nowrap;
+  margin-left: 10px;
+  display: inline-block;
 }
 
 .status-badge.available {
-  background: #4caf50;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
 }
 
 .status-badge.pending {
-  background: #ff9800;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
 }
 
 .status-badge.adopted {
-  background: #9e9e9e;
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
 }
 
-.animal-info {
-  padding: 25px;
+.status-badge.rejected {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
 }
 
-.animal-info h3 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 24px;
+.status-badge.default {
+  background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
 }
 
 .animal-details {
@@ -564,7 +605,48 @@ export default {
   gap: 25px;
 }
 
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
 
+.info-row:hover {
+  background: #f0f2ff;
+  transform: translateX(5px);
+}
+
+.status-badge-inline {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  display: inline-block;
+}
+
+.status-badge-inline.status-available {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+
+.status-badge-inline.status-pending {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.status-badge-inline.status-adopted {
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+}
+
+.status-badge-inline.status-rejected {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+.status-badge-inline.status-default {
+  background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+}
 
 .status-badge-large {
   position: absolute;

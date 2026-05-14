@@ -1,9 +1,9 @@
 <template>
   <div class="audit-manage">
     <div class="page-header">
-      <h1>📋 审核管理中心</h1>
+      <h1>审核管理中心</h1>
       <div class="header-actions">
-        <button @click="goBack" class="btn-back">返回主页</button>
+        <router-link to="/audit-manage" class="btn-review">审核管理中心</router-link>
       </div>
     </div>
 
@@ -22,13 +22,69 @@
           领养申请审核 ({{ pendingAdoptions.length }})
         </button>
         <button
+          :class="['tab-btn', { active: activeTab === 'fundraising' }]"
+          @click="activeTab = 'fundraising'"
+        >
+          募捐活动审核 ({{ pendingFundraisings.length }})
+        </button>
+        <button
+          :class="['tab-btn', { active: activeTab === 'adopter' }]"
+          @click="activeTab = 'adopter'"
+        >
+          领养人身份审核 ({{ pendingAdopters.length }})
+        </button>
+        <button
           :class="['tab-btn', { active: activeTab === 'donation' }]"
           @click="activeTab = 'donation'"
         >
           提现审核 ({{ pendingDonations.length }})
         </button>
+        <button
+          :class="['tab-btn', { active: activeTab === 'registration' }]"
+          @click="activeTab = 'registration'"
+        >
+          活动报名审核 ({{ pendingRegistrations.length }})
+        </button>
       </div>
 
+      <!-- 领养人身份审核 -->
+      <div v-if="activeTab === 'adopter'" class="tab-content">
+        <h2>待审核领养人申请</h2>
+        <div v-if="pendingAdopters.length === 0" class="empty-state">
+          <p>暂无待审核的领养人申请</p>
+        </div>
+        <div v-else class="card-list">
+          <div v-for="item in pendingAdopters" :key="item.userId" class="audit-card">
+            <div class="card-header">
+              <h3>领养人申请 #{{ item.userId }}</h3>
+              <span class="status-badge pending">待审核</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <strong>申请人：</strong>{{ item.username }}
+              </div>
+              <div class="info-row">
+                <strong>邮箱：</strong>{{ item.email || '未填写' }}
+              </div>
+              <div class="info-row">
+                <strong>手机号：</strong>{{ item.phone || '未填写' }}
+              </div>
+              <div class="info-row">
+                <strong>有固定收入：</strong>{{ item.hasFixedIncome ? '是' : '否' }}
+              </div>
+              <div class="info-row">
+                <strong>养宠经验：</strong>{{ item.isPetExperience ? '是' : '否' }}
+              </div>
+            </div>
+            <div class="card-actions">
+              <button @click="approveAdopter(item)" class="btn-approve">✓ 通过</button>
+              <button @click="rejectAdopter(item)" class="btn-reject">✗ 拒绝</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 送养审核 -->
       <div v-if="activeTab === 'surrender'" class="tab-content">
         <h2>待审核送养申请</h2>
         <div v-if="pendingSurrenders.length === 0" class="empty-state">
@@ -69,6 +125,7 @@
         </div>
       </div>
 
+      <!-- 领养申请审核 -->
       <div v-if="activeTab === 'adoption'" class="tab-content">
         <h2>待审核领养申请</h2>
         <div v-if="pendingAdoptions.length === 0" class="empty-state">
@@ -109,6 +166,54 @@
         </div>
       </div>
 
+      <!-- 募捐活动审核 -->
+      <div v-if="activeTab === 'fundraising'" class="tab-content">
+        <h2>待审核募捐活动</h2>
+        <div v-if="pendingFundraisings.length === 0" class="empty-state">
+          <p>暂无待审核的募捐活动</p>
+        </div>
+        <div v-else class="card-list">
+          <div v-for="item in pendingFundraisings" :key="item.fundraisingId" class="audit-card">
+            <div class="card-header">
+              <h3>募捐活动 #{{ item.fundraisingId }}</h3>
+              <span class="status-badge pending">待审核</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <strong>发起人：</strong>{{ item.creator?.username || '未知' }}
+              </div>
+              <div class="info-row">
+                <strong>标题：</strong>{{ item.title || '未填写' }}
+              </div>
+              <div class="info-row">
+                <strong>目标金额：</strong>¥{{ item.targetAmount || '0.00' }}
+              </div>
+              <div class="info-row">
+                <strong>用途：</strong>{{ item.purpose || '未填写' }}
+              </div>
+              <div class="info-row">
+                <strong>开始时间：</strong>{{ formatDate(item.startTime) }}
+              </div>
+              <div class="info-row">
+                <strong>结束时间：</strong>{{ formatDate(item.endTime) }}
+              </div>
+              <div class="info-row" v-if="item.content">
+                <strong>详细内容：</strong>{{ item.content }}
+              </div>
+            </div>
+            <div class="card-actions">
+              <button @click="showApproveFundraisingDialog(item)" class="btn-approve">
+                ✓ 通过
+              </button>
+              <button @click="showRejectDialog('fundraising', item)" class="btn-reject">
+                ✗ 拒绝
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 提现审核 -->
       <div v-if="activeTab === 'donation'" class="tab-content">
         <h2>待审核提现申请</h2>
         <div v-if="pendingDonations.length === 0" class="empty-state">
@@ -148,8 +253,50 @@
           </div>
         </div>
       </div>
+
+      <!-- 活动报名审核 -->
+      <div v-if="activeTab === 'registration'" class="tab-content">
+        <h2>待审核活动报名</h2>
+        <div v-if="pendingRegistrations.length === 0" class="empty-state">
+          <p>暂无待审核的活动报名</p>
+        </div>
+        <div v-else class="card-list">
+          <div v-for="item in pendingRegistrations" :key="item.user_id + '-' + item.activity_id" class="audit-card">
+            <div class="card-header">
+              <h3>活动报名</h3>
+              <span class="status-badge pending">待审核</span>
+            </div>
+            <div class="card-body">
+              <div class="info-row">
+                <strong>报名者：</strong>{{ item.username || '未知' }}
+              </div>
+              <div class="info-row">
+                <strong>联系电话：</strong>{{ item.phone || '未填写' }}
+              </div>
+              <div class="info-row">
+                <strong>活动名称：</strong>{{ item.activity_name || '未知' }}
+              </div>
+              <div class="info-row">
+                <strong>活动时间：</strong>{{ formatDateTime(item.start_time) }} ~ {{ formatDateTime(item.end_time) }}
+              </div>
+              <div class="info-row">
+                <strong>活动地点：</strong>{{ item.location || '未填写' }}
+              </div>
+            </div>
+            <div class="card-actions">
+              <button @click="approveRegistration(item)" class="btn-approve">
+                ✓ 通过
+              </button>
+              <button @click="rejectRegistration(item)" class="btn-reject">
+                ✗ 拒绝
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- 拒绝原因对话框 -->
     <div v-if="rejectDialog.visible" class="modal-overlay" @click="closeRejectDialog">
       <div class="modal-content" @click.stop>
         <h3>拒绝原因</h3>
@@ -165,6 +312,7 @@
       </div>
     </div>
 
+    <!-- 筹款发布对话框 -->
     <div v-if="donationApproveDialog.visible" class="modal-overlay" @click="closeDonationApproveDialog">
       <div class="modal-content" @click.stop>
         <h3>发布筹款信息</h3>
@@ -190,6 +338,25 @@
         </div>
       </div>
     </div>
+
+    <!-- 募捐活动审核备注对话框 -->
+    <div v-if="fundraisingApproveDialog.visible" class="modal-overlay" @click="closeFundraisingApproveDialog">
+      <div class="modal-content" @click.stop>
+        <h3>审核备注（可选）</h3>
+        <div class="form-group">
+          <label>备注：</label>
+          <textarea
+            v-model="fundraisingApproveDialog.remark"
+            placeholder="请输入审核备注"
+            rows="4"
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button @click="confirmApproveFundraising" class="btn-confirm">确认通过</button>
+          <button @click="closeFundraisingApproveDialog" class="btn-cancel">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -203,7 +370,10 @@ export default {
       activeTab: 'surrender',
       pendingSurrenders: [],
       pendingAdoptions: [],
+      pendingFundraisings: [],
       pendingDonations: [],
+      pendingRegistrations: [],
+      pendingAdopters: [],
       rejectDialog: {
         visible: false,
         type: '',
@@ -215,6 +385,11 @@ export default {
         item: null,
         title: '',
         content: ''
+      },
+      fundraisingApproveDialog: {
+        visible: false,
+        item: null,
+        remark: ''
       }
     }
   },
@@ -244,7 +419,10 @@ export default {
       await Promise.all([
         this.loadPendingSurrenders(),
         this.loadPendingAdoptions(),
-        this.loadPendingDonations()
+        this.loadPendingFundraisings(),
+        this.loadPendingDonations(),
+        this.loadPendingRegistrations(),
+        this.loadPendingAdopters()
       ])
     },
 
@@ -268,6 +446,16 @@ export default {
       }
     },
 
+    async loadPendingFundraisings() {
+      try {
+        const response = await auditApi.fundraising.getPending()
+        this.pendingFundraisings = response.data
+      } catch (error) {
+        console.error('加载待审核募捐活动失败:', error)
+        alert('加载募捐活动失败')
+      }
+    },
+
     async loadPendingDonations() {
       try {
         const response = await auditApi.donation.getPending()
@@ -275,6 +463,26 @@ export default {
       } catch (error) {
         console.error('加载待审核提现申请失败:', error)
         alert('加载提现申请失败')
+      }
+    },
+
+    async loadPendingRegistrations() {
+      try {
+        const response = await auditApi.registration.getPending()
+        this.pendingRegistrations = response.data
+      } catch (error) {
+        console.error('加载待审核报名失败:', error)
+        alert('加载活动报名失败')
+      }
+    },
+
+    async loadPendingAdopters() {
+      try {
+        const response = await auditApi.adopter.getPending()
+        this.pendingAdopters = response.data
+      } catch (error) {
+        console.error('加载待审核领养人申请失败:', error)
+        alert('加载领养人申请失败')
       }
     },
 
@@ -336,12 +544,44 @@ export default {
           await auditApi.adoption.reject(item.applicationId, reason)
           alert('已拒绝领养申请')
           await this.loadPendingAdoptions()
+        } else if (type === 'fundraising') {
+          await auditApi.fundraising.reject(item.fundraisingId, reason)
+          alert('已拒绝募捐活动')
+          await this.loadPendingFundraisings()
         } else if (type === 'donation') {
           await auditApi.donation.reject(item.id, reason)
           alert('已拒绝提现申请')
           await this.loadPendingDonations()
         }
         this.closeRejectDialog()
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
+      }
+    },
+
+    async approveRegistration(item) {
+      if (!confirm(`确定要通过 ${item.username} 的活动报名吗？`)) {
+        return
+      }
+
+      try {
+        await auditApi.registration.approve(item.activity_id, item.user_id)
+        alert('报名审核通过')
+        await this.loadPendingRegistrations()
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
+      }
+    },
+
+    async rejectRegistration(item) {
+      if (!confirm(`确定要拒绝 ${item.username} 的活动报名吗？`)) {
+        return
+      }
+
+      try {
+        await auditApi.registration.reject(item.activity_id, item.user_id)
+        alert('已拒绝活动报名')
+        await this.loadPendingRegistrations()
       } catch (error) {
         alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
       }
@@ -383,11 +623,46 @@ export default {
       }
     },
 
+    showApproveFundraisingDialog(item) {
+      this.fundraisingApproveDialog = {
+        visible: true,
+        item,
+        remark: ''
+      }
+    },
+
+    closeFundraisingApproveDialog() {
+      this.fundraisingApproveDialog = {
+        visible: false,
+        item: null,
+        remark: ''
+      }
+    },
+
+    async confirmApproveFundraising() {
+      const { item, remark } = this.fundraisingApproveDialog
+
+      try {
+        await auditApi.fundraising.approve(item.fundraisingId, remark)
+        alert('募捐活动审核通过，已发布')
+        await this.loadPendingFundraisings()
+        this.closeFundraisingApproveDialog()
+      } catch (error) {
+        alert('操作失败: ' + (error.response?.data?.message || '未知错误'))
+      }
+    },
+
     goBack() {
       this.$router.push('/admin/dashboard')
     },
 
     formatDate(dateString) {
+      if (!dateString) return '未知'
+      const date = new Date(dateString)
+      return date.toLocaleString('zh-CN')
+    },
+
+    formatDateTime(dateString) {
       if (!dateString) return '未知'
       const date = new Date(dateString)
       return date.toLocaleString('zh-CN')
@@ -445,6 +720,7 @@ export default {
   gap: 10px;
   margin-bottom: 30px;
   border-bottom: 2px solid #e0e0e0;
+  flex-wrap: wrap;
 }
 
 .tab-btn {

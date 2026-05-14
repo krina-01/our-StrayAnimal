@@ -38,7 +38,7 @@ public class SurrenderController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getSurrenderById(@PathVariable Integer id) {
-        SurrenderInfo surrender = surrenderInfoRepository.findById(id);
+        SurrenderInfo surrender = surrenderInfoRepository.findById(id).orElse(null);
         
         if (surrender == null) {
             Map<String, String> error = new HashMap<>();
@@ -77,11 +77,14 @@ public class SurrenderController {
             return ResponseEntity.status(404).body(error);
         }
 
-        SurrenderInfo existingSurrender = (SurrenderInfo) surrenderInfoRepository.findByAnimalId(animalId);
-        if (existingSurrender != null && !"rejected".equals(existingSurrender.getAuditStatus())) {
-            Map<String, String> error = new HashMap<>();
-            error.put("message", "该动物已经有送养申请");
-            return ResponseEntity.status(400).body(error);
+        List<SurrenderInfo> existingSurrenders = surrenderInfoRepository.findByAnimalId(animalId);
+        if (!existingSurrenders.isEmpty()) {
+            SurrenderInfo existingSurrender = existingSurrenders.get(0);
+            if (!"rejected".equals(existingSurrender.getAuditStatus())) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "该动物已经有送养申请");
+                return ResponseEntity.status(400).body(error);
+            }
         }
 
         SurrenderInfo surrenderInfo = new SurrenderInfo();
@@ -98,7 +101,7 @@ public class SurrenderController {
 
     @PutMapping("/{id}/approve")
     public ResponseEntity<?> approveSurrender(@PathVariable Integer id) {
-        SurrenderInfo surrenderInfo = surrenderInfoRepository.findById(id);
+        SurrenderInfo surrenderInfo = surrenderInfoRepository.findById(id).orElse(null);
         if (surrenderInfo == null) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "送养信息不存在");
@@ -117,7 +120,7 @@ public class SurrenderController {
 
     @PutMapping("/{id}/reject")
     public ResponseEntity<?> rejectSurrender(@PathVariable Integer id) {
-        SurrenderInfo surrenderInfo = surrenderInfoRepository.findById(id);
+        SurrenderInfo surrenderInfo = surrenderInfoRepository.findById(id).orElse(null);
         if (surrenderInfo == null) {
             Map<String, String> error = new HashMap<>();
             error.put("message", "送养信息不存在");

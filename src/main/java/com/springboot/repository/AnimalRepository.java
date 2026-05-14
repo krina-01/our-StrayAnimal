@@ -2,9 +2,7 @@ package com.springboot.repository;
 
 import com.springboot.entity.Animal;
 import org.apache.ibatis.annotations.*;
-
 import java.util.List;
-import java.util.Optional;
 
 @Mapper
 public interface AnimalRepository {
@@ -26,6 +24,14 @@ public interface AnimalRepository {
             "INNER JOIN surrender_info s ON a.animal_id = s.animal_id " +
             "WHERE a.adopt_status = 'available' AND s.status = 'published'")
     List<Animal> findAvailableAnimals();
+
+    @Select("SELECT a.animal_id AS animalId, a.name, a.species, a.age, a.gender, a.health_status AS healthStatus, " +
+            "a.adopt_status AS adoptStatus, a.rescue_record AS rescueRecord, a.entry_time AS entryTime, " +
+            "a.location, a.user_id AS userId " +
+            "FROM animal a " +
+            "INNER JOIN surrender_info s ON a.animal_id = s.animal_id " +
+            "WHERE a.adopt_status = 'available' AND s.status = 'published' AND a.user_id != #{excludeUserId}")
+    List<Animal> findAvailableAnimalsExcludingUser(@Param("excludeUserId") Integer excludeUserId);
 
     @Select("SELECT animal_id AS animalId, name, species, age, gender, health_status AS healthStatus, " +
             "adopt_status AS adoptStatus, rescue_record AS rescueRecord, entry_time AS entryTime, " +

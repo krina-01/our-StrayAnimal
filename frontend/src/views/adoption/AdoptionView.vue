@@ -6,7 +6,6 @@
       </div>
       <nav class="nav">
         <router-link to="/" class="nav-link">首页</router-link>
-        <router-link to="/adoption" class="nav-link active">动物领养</router-link>
         <router-link to="/about" class="nav-link">关于我们</router-link>
         <template v-if="!currentUser">
           <router-link to="/login" class="nav-link">登录</router-link>
@@ -14,7 +13,7 @@
         </template>
         <template v-else>
           <span class="welcome-text">欢迎，{{ currentUser.username }}</span>
-          <router-link to="/my-animals" class="nav-link">我的动物</router-link>
+          <router-link to="/adoption" class="nav-link active">动物领养</router-link>
           <router-link to="/profile" class="nav-link">个人中心</router-link>
           <button @click="handleLogout" class="nav-link btn-logout">退出</button>
         </template>
@@ -281,8 +280,15 @@ export default {
     async loadAnimals() {
       try {
         this.loading = true
-        const response = await animalApi.getAvailableAnimals()
-        this.animals = response.data
+
+        if (this.currentUser) {
+          const response = await animalApi.getAvailableAnimalsExcludingUser(this.currentUser.userId)
+          this.animals = response.data
+        } else {
+          const response = await animalApi.getAvailableAnimals()
+          this.animals = response.data
+        }
+
         this.filteredAnimals = [...this.animals]
 
         await this.loadSurrenderInfo()
@@ -436,11 +442,6 @@ export default {
         return
       }
 
-      if (this.currentUser.registerStatus !== 'approved') {
-        alert('您的账号尚未通过审核，无法申请领养')
-        return
-      }
-
       if (this.isAnimalApplied(animal.animalId)) {
         const application = this.getUserApplicationForAnimal(animal.animalId)
         const statusMap = {
@@ -486,6 +487,7 @@ export default {
         agreement: false
       }
     },
+
 
     async submitAdoptionApplication() {
       if (!this.applicationForm.agreement) {
@@ -533,6 +535,7 @@ export default {
         this.submitting = false
       }
     }
+
   }
 }
 </script>
@@ -582,7 +585,6 @@ export default {
   color: #667eea;
   background: #f0f2ff;
 }
-
 .btn-register {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white !important;
