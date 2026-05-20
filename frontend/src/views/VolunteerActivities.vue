@@ -11,7 +11,7 @@
       </button>
     </div>
     <div class="activity-list">
-      <div v-for="act in filteredActivities" :key="act.activityId" class="activity-card">
+      <div v-for="act in paginatedActivities" :key="act.activityId" class="activity-card">
         <h3>{{ act.activityName }}</h3>
         <p><strong>时间：</strong>{{ formatDateTime(act.startTime) }} ~ {{ formatDateTime(act.endTime) }}</p>
         <p><strong>地点：</strong>{{ act.location }}</p>
@@ -19,29 +19,49 @@
         <p><strong>招募状态：</strong>{{ act.recruitStatus === 'recruiting' ? '招募中' : '已关闭' }}</p>
         <p><strong>活动状态：</strong>{{ getActivityStatus(act) }}</p>
         <div class="actions">
-          <!-- 1. 志愿者且满足条件时显示正常报名按钮 -->
           <button
             v-if="canRegister(act)"
             @click="register(act.activityId)"
             class="btn-register">
             报名
           </button>
-          <!-- 2. 非志愿者且活动为招募中且活动未开始时，显示申请志愿者提示按钮 -->
           <button
             v-else-if="!currentUser.isVolunteer && act.recruitStatus === 'recruiting' && getActivityStatus(act) === '未开始'"
             @click="alertNotVolunteer"
             class="btn-register btn-disabled">
             成为志愿者后可报名
           </button>
-          <!-- 3. 取消报名按钮 -->
           <button v-if="canCancel(act)" @click="cancel(act.activityId)" class="btn-cancel">取消报名</button>
-          <!-- 4. 签到按钮 -->
           <button v-if="canCheckin(act)" @click="doCheckin(act.activityId)" class="btn-checkin">签到</button>
-          <!-- 5. 报名状态标签 -->
           <span v-if="registrationStatus(act.activityId)" class="status-badge">
             报名状态: {{ getStatusText(registrationStatus(act.activityId)) }}
           </span>
         </div>
+      </div>
+    </div>
+
+    <!-- 分页组件 -->
+    <div v-if="totalActivities > 0" class="pagination">
+      <div class="pagination-info">
+        共 {{ totalActivities }} 条活动，第 {{ currentPage }} / {{ totalPages }} 页
+      </div>
+      <div class="pagination-controls">
+        <button @click="prevPage" :disabled="currentPage === 1" class="page-btn">上一页</button>
+        <span class="page-numbers">
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            @click="goToPage(page)"
+            :class="['page-number', { active: page === currentPage }]">
+            {{ page }}
+          </button>
+        </span>
+        <button @click="nextPage" :disabled="currentPage === totalPages" class="page-btn">下一页</button>
+        <select v-model="pageSize" @change="resetPage" class="page-size-select">
+          <option :value="3">3条/页</option>
+          <option :value="5">5条/页</option>
+          <option :value="10">10条/页</option>
+        </select>
       </div>
     </div>
   </div>
@@ -62,7 +82,10 @@ export default {
         { value: 'ended', label: '已结束' }
       ],
       activities: [],
-      registrations: []
+      registrations: [],
+      // 分页参数
+      currentPage: 1,
+      pageSize: 10,
     }
   },
   computed: {
@@ -70,19 +93,50 @@ export default {
       return JSON.parse(localStorage.getItem('currentUser') || '{}')
     },
     filteredActivities() {
-      if (this.currentFilter === 'all') return this.activities
+      let filtered = this.activities
       if (this.currentFilter === 'recruiting') {
-        return this.activities.filter(a => a.recruitStatus === 'recruiting')
-      }
-      if (this.currentFilter === 'ongoing') {
+        filtered = this.activities.filter(a => a.recruitStatus === 'recruiting')
+      } else if (this.currentFilter === 'ongoing') {
         const now = new Date()
-        return this.activities.filter(a => new Date(a.startTime) <= now && new Date(a.endTime) >= now)
-      }
-      if (this.currentFilter === 'ended') {
+        filtered = this.activities.filter(a => new Date(a.startTime) <= now && new Date(a.endTime) >= now)
+      } else if (this.currentFilter === 'ended') {
         const now = new Date()
-        return this.activities.filter(a => new Date(a.endTime) < now)
+        filtered = this.activities.filter(a => new Date(a.endTime) < now)
       }
-      return this.activities
+      return filtered
+    },
+    totalActivities() {
+      return this.filteredActivities.length
+    },
+    totalPages() {
+      return Math.ceil(this.totalActivities / this.pageSize) || 1
+    },
+    paginatedActivities() {
+      const start = (this.currentPage - 1) * this.pageSize
+      const end = start + this.pageSize
+      return this.filteredActivities.slice(start, end)
+    },
+    visiblePages() {
+      const total = this.totalPages
+      const current = this.currentPage
+      const delta = 1 // 当前页前后显示页码数
+      let range = []
+      for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+        range.push(i)
+      }
+      if (current - delta > 2) range.unshift('...')
+      if (current + delta < total - 1) range.push('...')
+      range.unshift(1)
+      if (total > 1) range.push(total)
+      return range
+    }
+  },
+  watch: {
+    currentFilter() {
+      this.resetPage()
+    },
+    pageSize() {
+      this.resetPage()
     }
   },
   async created() {
@@ -124,7 +178,6 @@ export default {
       if (now >= start && now <= end) return '进行中'
       return '已结束'
     },
-    // 志愿者且满足条件时显示报名按钮
     canRegister(act) {
       if (!this.currentUser.isVolunteer) return false
       if (act.recruitStatus !== 'recruiting') return false
@@ -133,7 +186,6 @@ export default {
     },
     canCancel(act) {
       const status = this.registrationStatus(act.activityId)
-      // 未开始的活动且报名状态为 pending 或 approved 可以取消
       return (status === 'pending' || status === 'approved') && this.getActivityStatus(act) === '未开始'
     },
     canCheckin(act) {
@@ -148,7 +200,6 @@ export default {
         alert('请先登录')
         return
       }
-      // 前端再次校验志愿者身份（防止按钮状态错乱）
       if (!this.currentUser.isVolunteer) {
         alert('您不是志愿者，无法报名')
         return
@@ -184,6 +235,19 @@ export default {
     formatDateTime(dateStr) {
       if (!dateStr) return ''
       return new Date(dateStr).toLocaleString('zh-CN')
+    },
+    // 分页方法
+    resetPage() {
+      this.currentPage = 1
+    },
+    prevPage() {
+      if (this.currentPage > 1) this.currentPage--
+    },
+    nextPage() {
+      if (this.currentPage < this.totalPages) this.currentPage++
+    },
+    goToPage(page) {
+      if (typeof page === 'number') this.currentPage = page
     }
   }
 }
@@ -259,5 +323,75 @@ export default {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 14px;
+}
+/* 分页样式 */
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.page-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.page-btn:hover:not(:disabled) {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+.page-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.page-numbers {
+  display: flex;
+  gap: 5px;
+}
+.page-number {
+  min-width: 32px;
+  padding: 6px 0;
+  text-align: center;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.page-number.active {
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+}
+.page-size-select {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pagination-controls {
+    justify-content: center;
+  }
 }
 </style>

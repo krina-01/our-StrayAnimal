@@ -123,6 +123,7 @@ public interface UserRepository {
     })
     List<User> findByRegisterStatus(@Param("registerStatus") String registerStatus);
 
+
     @Insert("INSERT INTO user (username, password, phone, email, role, is_volunteer, gender, has_fixed_income, birth_year, is_pet_experience, address, register_status, volunteer_apply_status) " +
             "VALUES (#{username}, #{password}, #{phone}, #{email}, #{role}, #{isVolunteer}, #{gender}, #{hasFixedIncome}, #{birthYear}, #{isPetExperience}, #{address}, #{registerStatus}, #{volunteerApplyStatus})")
     @Options(useGeneratedKeys = true, keyProperty = "userId")
@@ -153,5 +154,21 @@ public interface UserRepository {
 
     // 根据志愿者申请状态查询
     @Select("SELECT * FROM user WHERE volunteer_apply_status = #{status}")
+    @Results({
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "username", column = "username"),
+            @Result(property = "password", column = "password"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "role", column = "role"),
+            @Result(property = "isVolunteer", column = "is_volunteer"),
+            @Result(property = "gender", column = "gender"),
+            @Result(property = "hasFixedIncome", column = "has_fixed_income"),
+            @Result(property = "birthYear", column = "birth_year"),
+            @Result(property = "isPetExperience", column = "is_pet_experience"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "registerStatus", column = "register_status"),
+            @Result(property = "volunteerApplyStatus", column = "volunteer_apply_status")
+    })
     List<User> findByVolunteerApplyStatus(@Param("status") String status);
 }
