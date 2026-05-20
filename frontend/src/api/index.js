@@ -216,6 +216,36 @@ export const animalApi = {
 
   getAnimalsByUserId(userId) {
     return apiClient.get(`/animals/user/${userId}`)
+  },
+  addAnimal(animalData) {
+    return apiClient.post('/animals/add', animalData)
+  },
+  deleteAnimal(animalId, userId) {
+    return apiClient.delete(`/animals/delete/${animalId}`, {
+      params: { userId }
+    })
+  },
+
+  updateAnimal(animalId, animalData) {
+    return apiClient.put(`/animals/update/${animalId}`, animalData)
+  },
+
+  updateAdoptStatus(animalId, adoptStatus) {
+    return apiClient.post(`/animals/adopt-status/${animalId}`, null, {
+      params: { adoptStatus }
+    })
+  },
+
+  addRescueRecord(animalId, rescueRecord) {
+    return apiClient.post(`/animals/rescue-record/${animalId}`, null, {
+      params: { rescueRecord }
+    })
+  },
+
+  updateHealthStatus(animalId, healthStatus) {
+    return apiClient.post(`/animals/health-status/${animalId}`, null, {
+      params: { healthStatus }
+    })
   }
 }
 
@@ -288,3 +318,4 @@ export const surrenderApi = {
 }
 
 export default apiClient
+

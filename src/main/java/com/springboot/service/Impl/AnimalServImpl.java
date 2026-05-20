@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AnimalServImpl  implements AnimalService {
@@ -16,18 +18,61 @@ public class AnimalServImpl  implements AnimalService {
     AnimalRepository animalRepository;
     @Autowired
     UserRepository userRepository;
-
     @Override
-    public ResponseEntity<String> insertAnimal(Animal animal) {
-        int num = animalRepository.insertAnimal(animal);
-        if(num == 0) return ResponseEntity.internalServerError().body("添加失败...");
-        return ResponseEntity.ok("添加成功...");
+    public ResponseEntity<?> insertAnimal(Animal animal) {
+        try {
+            // 业务逻辑：验证必要字段
+            if (animal.getName() == null || animal.getName().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "动物名称不能为空");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            if (animal.getSpecies() == null || animal.getSpecies().trim().isEmpty()) {
+                Map<String, String> error = new HashMap<>();
+                Map<String, String> errorMsg = new HashMap<>();
+                errorMsg.put("message", "动物种类不能为空");
+                return ResponseEntity.badRequest().body(errorMsg);
+            }
+
+            if (animal.getUserId() == null) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "用户ID不能为空");
+                return ResponseEntity.badRequest().body(error);
+            }
+
+            // 设置默认值
+            if (animal.getGender() == null) {
+                animal.setGender("unknown");
+            }
+            if (animal.getHealthStatus() == null) {
+                animal.setHealthStatus("健康");
+            }
+
+            // 调用 Repository 插入数据
+            int num = animalRepository.insertAnimal(animal);
+            if(num == 0) {
+                Map<String, String> error = new HashMap<>();
+                error.put("message", "添加失败");
+                return ResponseEntity.internalServerError().body(error);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "添加成功");
+            response.put("animal", animal);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Map<String, String> error = new HashMap<>();
+            error.put("message", "添加失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
+
 
     @Override
     public ResponseEntity<String> deleteById(Integer animalId, Long userId) {
-        User foundUser = userRepository.findById(userId).orElse(null);;
-        if(!"admin".equals(foundUser.getRole())) return ResponseEntity.internalServerError().body("无权访问，仅管理员可删除...");
+        User foundUser = userRepository.findById(userId).orElse(null);
         int num = animalRepository.deleteById(animalId);
         if(num == 0) return ResponseEntity.internalServerError().body("删除失败,目标不存在...");
         return ResponseEntity.ok("删除成功...");
@@ -55,7 +100,31 @@ public class AnimalServImpl  implements AnimalService {
     }
 
     @Override
-    public ResponseEntity<String> updateAdoptStatusById() {
-        return null;
+    public ResponseEntity<String> updateAdoptStatusById(String adopt_status,Integer animalId) {
+        int num = 0;
+        if ("available".equals(adopt_status)) {
+            num = animalRepository.updateAdoptStatus("available", animalId);
+        }
+        else if ("adopted".equals(adopt_status)) {
+            num = animalRepository.updateAdoptStatus("adopted", animalId);
+        }
+        if(num == 0) return ResponseEntity.internalServerError().body("更新失败,目标不存在...");
+        return ResponseEntity.ok("更新成功...");
     }
+
+    @Override
+    public ResponseEntity<String> insertRescueRecord(String rescue,Integer animalId) {
+        int num = animalRepository.addAnimalRescueRecord(rescue, animalId);
+        if(num == 0) return ResponseEntity.internalServerError().body("添加失败,目标不存在...");
+        return ResponseEntity.ok("添加成功...");
+    }
+
+    @Override
+    public ResponseEntity<String> updateHealthStatus(String health_status, Integer animalId) {
+        int num = animalRepository.updateHealthStatus(health_status, animalId);
+        if(num == 0) return ResponseEntity.internalServerError().body("更新失败,目标不存在...");
+        return ResponseEntity.ok("更新成功...");
+    }
+
+
 }

@@ -4,6 +4,12 @@ import HomeView from '../views/HomeView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    // 新增：志愿活动页面
+    {
+      path: '/volunteer-activities',
+      name: 'volunteer-activities',
+      component: () => import('../views/VolunteerActivities.vue'),
+    },
     {
       path: '/',
       name: 'home',
@@ -68,6 +74,11 @@ const router = createRouter({
       path: '/my-animals',
       name: 'my-animals',
       component: () => import('../views/animal/MyAnimalsView.vue'),
+    },
+    {
+      path: '/add-animal',
+      name: 'add-animal',
+      component: () => import('../views/animal/AddAnimalView.vue'),
     },
     // 新增：志愿活动页面
     {

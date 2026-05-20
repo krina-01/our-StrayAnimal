@@ -25,6 +25,10 @@
       <section class="page-header">
         <h2>我的动物</h2>
         <p>查看您上传的动物信息</p>
+        <router-link to="/add-animal" class="btn-publish-header">
+          <span class="icon">➕</span>
+          <span>发布新动物</span>
+        </router-link>
       </section>
 
       <section class="animals-section">
@@ -34,7 +38,7 @@
         <div v-else-if="animals.length === 0" class="no-animals">
           <div class="empty-icon">📭</div>
           <p>您还没有上传任何动物信息</p>
-          <router-link to="/surrender" class="btn-add-animal">
+          <router-link to="/add-animal" class="btn-add-animal">
             <span>立即发布</span>
             <span class="arrow">→</span>
           </router-link>
@@ -46,7 +50,12 @@
             class="animal-card"
           >
             <div class="animal-info">
-              <h3>{{ animal.name }}</h3>
+              <div class="card-header">
+                <h3>{{ animal.name }}</h3>
+                <span :class="['status-badge', getAdoptStatusClass(animal.adoptStatus)]">
+                  {{ getAdoptStatusText(animal.adoptStatus) }}
+                </span>
+              </div>
               <div class="animal-details">
                 <span class="detail-item">
                   <span class="icon">{{ getTypeIcon(animal.species) }}</span>
@@ -69,6 +78,12 @@
                 <button @click="viewAnimalDetail(animal)" class="btn-view">
                   查看详情
                 </button>
+                <button @click="editAnimal(animal)" class="btn-edit">
+                  编辑
+                </button>
+                <button @click="deleteAnimal(animal)" class="btn-delete">
+                  删除
+                </button>
               </div>
             </div>
           </div>
@@ -85,6 +100,12 @@
         <div class="modal-body">
           <div class="detail-section">
             <div class="detail-info">
+              <div class="info-row">
+                <span class="info-label">📊 领养状态：</span>
+                <span :class="['status-badge-inline', getAdoptStatusClass(selectedAnimal?.adoptStatus)]">
+                  {{ getAdoptStatusText(selectedAnimal?.adoptStatus) }}
+                </span>
+              </div>
               <div class="info-row">
                 <span class="info-label">🏷️ 名称：</span>
                 <span class="info-value">{{ selectedAnimal?.name }}</span>
@@ -126,6 +147,110 @@
       </div>
     </div>
 
+    <!-- 编辑动物模态框 -->
+    <div v-if="showEditModal" class="modal-overlay" @click="closeEditModal">
+      <div class="modal-content edit-modal" @click.stop>
+        <div class="modal-header">
+          <h2>编辑动物信息 - {{ editingAnimal?.name }}</h2>
+          <button @click="closeEditModal" class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitEdit" class="edit-form">
+            <div class="form-group">
+              <label for="edit-name">动物名称</label>
+              <input
+                type="text"
+                id="edit-name"
+                v-model="editForm.name"
+                required
+                class="form-input"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-species">种类</label>
+                <select
+                  id="edit-species"
+                  v-model="editForm.species"
+                  required
+                  class="form-input"
+                >
+                  <option value="狗">狗</option>
+                  <option value="猫">猫</option>
+                  <option value="兔子">兔子</option>
+                  <option value="鸟">鸟</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="edit-age">年龄</label>
+                <input
+                  type="number"
+                  id="edit-age"
+                  v-model.number="editForm.age"
+                  required
+                  min="0"
+                  class="form-input"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="edit-gender">性别</label>
+                <select
+                  id="edit-gender"
+                  v-model="editForm.gender"
+                  required
+                  class="form-input"
+                >
+                  <option value="male">公</option>
+                  <option value="female">母</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="edit-healthStatus">健康状况</label>
+                <select
+                  id="edit-healthStatus"
+                  v-model="editForm.healthStatus"
+                  required
+                  class="form-input"
+                >
+                  <option value="健康">健康</option>
+                  <option value="轻微疾病">轻微疾病</option>
+                  <option value="需要治疗">需要治疗</option>
+                  <option value="残疾">残疾</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edit-location">位置</label>
+              <input
+                type="text"
+                id="edit-location"
+                v-model="editForm.location"
+                class="form-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="edit-rescueRecord">救助记录</label>
+              <textarea
+                id="edit-rescueRecord"
+                v-model="editForm.rescueRecord"
+                rows="3"
+                class="form-textarea"
+              ></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="button" @click="closeEditModal" class="btn-cancel">取消</button>
+              <button type="submit" class="btn-submit" :disabled="editLoading">
+                {{ editLoading ? '保存中...' : '保存' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <footer class="footer">
       <p>&copy; 2026 流浪动物救助平台 | 用爱心温暖每一个生命</p>
     </footer>
@@ -143,7 +268,19 @@ export default {
       animals: [],
       loading: true,
       showDetailModal: false,
-      selectedAnimal: null
+      selectedAnimal: null,
+      showEditModal: false,
+      editingAnimal: null,
+      editLoading: false,
+      editForm: {
+        name: '',
+        species: '',
+        age: null,
+        gender: '',
+        healthStatus: '',
+        location: '',
+        rescueRecord: ''
+      }
     }
   },
   async created() {
@@ -216,6 +353,80 @@ export default {
     closeDetailModal() {
       this.showDetailModal = false
       this.selectedAnimal = null
+    },
+    editAnimal(animal) {
+      this.editingAnimal = animal
+      this.editForm = {
+        name: animal.name,
+        species: animal.species,
+        age: animal.age,
+        gender: animal.gender,
+        healthStatus: animal.healthStatus,
+        location: animal.location || '',
+        rescueRecord: animal.rescueRecord || ''
+      }
+      this.showEditModal = true
+    },
+    closeEditModal() {
+      this.showEditModal = false
+      this.editingAnimal = null
+      this.editForm = {
+        name: '',
+        species: '',
+        age: null,
+        gender: '',
+        healthStatus: '',
+        location: '',
+        rescueRecord: ''
+      }
+    },
+    async submitEdit() {
+      try {
+        this.editLoading = true
+        await animalApi.updateAnimal(this.editingAnimal.animalId, this.editForm)
+        alert('更新成功！')
+        this.closeEditModal()
+        await this.loadUserAnimals()
+      } catch (error) {
+        console.error('更新失败:', error)
+        alert('更新失败，请稍后重试')
+      } finally {
+        this.editLoading = false
+      }
+    },
+    async deleteAnimal(animal) {
+      if (!confirm(`确定要删除动物"${animal.name}"吗？此操作不可恢复！`)) {
+        return
+      }
+
+      try {
+        await animalApi.deleteAnimal(animal.animalId, this.currentUser.userId)
+        alert('删除成功！')
+        await this.loadUserAnimals()
+      } catch (error) {
+        console.error('删除失败:', error)
+        if (error.response && error.response.data) {
+          alert('删除失败：' + error.response.data)
+        } else {
+          alert('删除失败，请稍后重试')
+        }
+      }
+    },
+    getAdoptStatusText(status) {
+      const statusMap = {
+        available: '可领养',
+        pending: '审核中',
+        adopted: '已领养'
+      }
+      return statusMap[status] || status
+    },
+    getAdoptStatusClass(status) {
+      const statusMap = {
+        available: 'available',
+        pending: 'pending',
+        adopted: 'adopted'
+      }
+      return statusMap[status] || 'default'
     }
   }
 }
@@ -309,6 +520,33 @@ export default {
   opacity: 0.9;
 }
 
+.btn-publish-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 12px 24px;
+  background: white;
+  color: #667eea;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+  border: 2px solid white;
+}
+
+.btn-publish-header:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.btn-publish-header .icon {
+  font-size: 20px;
+}
+
 .animals-section {
   padding: 40px;
   max-width: 1400px;
@@ -382,38 +620,53 @@ export default {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+.animal-info {
+  padding: 25px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+  flex: 1;
+}
 
 .status-badge {
-  position: absolute;
-  top: 15px;
-  right: 15px;
   padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: bold;
   color: white;
+  white-space: nowrap;
+  margin-left: 10px;
+  display: inline-block;
 }
 
 .status-badge.available {
-  background: #4caf50;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
 }
 
 .status-badge.pending {
-  background: #ff9800;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
 }
 
 .status-badge.adopted {
-  background: #9e9e9e;
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
 }
 
-.animal-info {
-  padding: 25px;
+.status-badge.rejected {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
 }
 
-.animal-info h3 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 24px;
+.status-badge.default {
+  background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
 }
 
 .animal-details {
@@ -453,24 +706,51 @@ export default {
 
 .animal-actions {
   margin-top: 15px;
+  display: flex;
+  gap: 10px;
 }
 
-.btn-view {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+.btn-view,
+.btn-edit,
+.btn-delete {
+  flex: 1;
+  padding: 10px;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
 }
 
+.btn-view {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
 .btn-view:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}
+
+.btn-edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.4);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+}
+
+.btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(238, 90, 111, 0.4);
 }
 
 .modal-overlay {
@@ -564,37 +844,6 @@ export default {
   gap: 25px;
 }
 
-
-
-.status-badge-large {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
-}
-
-.status-badge-large.available {
-  background: #4caf50;
-}
-
-.status-badge-large.pending {
-  background: #ff9800;
-}
-
-.status-badge-large.adopted {
-  background: #9e9e9e;
-}
-
-.detail-info {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
 .info-row {
   display: flex;
   align-items: flex-start;
@@ -607,6 +856,41 @@ export default {
 .info-row:hover {
   background: #f0f2ff;
   transform: translateX(5px);
+}
+
+.status-badge-inline {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  display: inline-block;
+}
+
+.status-badge-inline.status-available {
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+}
+
+.status-badge-inline.status-pending {
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+}
+
+.status-badge-inline.status-adopted {
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+}
+
+.status-badge-inline.status-rejected {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+}
+
+.status-badge-inline.status-default {
+  background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .info-label {
@@ -647,6 +931,97 @@ export default {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.edit-modal {
+  max-width: 600px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 14px;
+}
+
+.form-input,
+.form-textarea {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .footer {
   background: #333;
   color: white;
@@ -677,14 +1052,6 @@ export default {
 
   .modal-content {
     margin: 10px;
-  }
-
-  .detail-image {
-    height: 200px;
-  }
-
-  .placeholder-large {
-    font-size: 100px;
   }
 
   .info-row {
