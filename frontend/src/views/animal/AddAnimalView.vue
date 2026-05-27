@@ -230,8 +230,8 @@ export default {
       } finally {
         this.loading = false
       }
-    }
-    ,
+    },
+    //
 
     handleCancel() {
       if (confirm('确定要取消吗？已填写的内容将不会保存。')) {

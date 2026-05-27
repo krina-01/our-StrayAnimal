@@ -35,6 +35,7 @@ public class AnimalServImpl  implements AnimalService {
                 return ResponseEntity.badRequest().body(errorMsg);
             }
 
+            //
             if (animal.getUserId() == null) {
                 Map<String, String> error = new HashMap<>();
                 error.put("message", "用户ID不能为空");

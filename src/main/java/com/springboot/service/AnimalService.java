@@ -9,6 +9,7 @@ import java.util.Map;
 
 @Service
 public interface AnimalService {
+    //
     ResponseEntity<?> insertAnimal(Animal  animal);
     ResponseEntity<String> deleteById(Integer animalId,Long userId);
     ResponseEntity<String> updateById(Animal animal);

@@ -18,6 +18,7 @@ public class Animal {
     private Integer userId;
     private String location;
 
+    //
     public Animal(Integer animalId, String name, String species, Integer age, String gender, String healthStatus, String adoptStatus, String rescueRecord, Date entryTime, Integer userId, String location) {
         this.animalId = animalId;
         this.name = name;

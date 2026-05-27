@@ -71,6 +71,7 @@ public class AnimalController {
         return animals;
     }
 
+    //
     @GetMapping("/available")
     public List<Animal> getAvailableAnimals() {
         List<Animal> animals = animalRepository.findAvailableAnimals();

@@ -15,6 +15,7 @@ public interface AnimalRepository {
         @Options(useGeneratedKeys = true, keyProperty = "animalId")
         int insertAnimal(Animal animal);
 
+        //
         // 根据ID删除
         @Delete("DELETE FROM animal WHERE animal_id = #{animalId}")
         int deleteById(Integer animalId);
